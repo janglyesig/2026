@@ -8,52 +8,56 @@
     <style>
         body { background: #050a14; color: #eee; font-family: sans-serif; display:none; padding: 20px; }
         body.secure-visible { display: block; }
-        .panel { max-width: 500px; margin: auto; background: #111; padding: 30px; border-radius: 20px; border: 1px solid #D4AF37; box-shadow: 0 0 20px rgba(212,175,55,0.1); }
+        .panel { max-width: 500px; margin: auto; background: #111; padding: 30px; border-radius: 20px; border: 1px solid #D4AF37; }
         h2 { color: #D4AF37; border-left: 4px solid #D4AF37; padding-left: 10px; margin-top: 0; }
         label { display: block; margin-top: 20px; font-size: 0.9rem; color: #aaa; }
         input { width: 100%; padding: 15px; margin: 8px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
         button { width: 100%; padding: 15px; background: #D4AF37; color: #000; border: none; font-weight: bold; border-radius: 8px; margin-top: 15px; cursor: pointer; }
-        .btn-del { background: transparent; border: 1px solid #d9534f; color: #d9534f; margin-top: 40px; }
         .back-btn { display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="panel">
-        <h2>🛠️ 현장 시스템 통합 관리</h2>
+        <h2>🛠️ 클라우드 통합 관리</h2>
 
         <label>메인 화면 공지사항</label>
-        <input type="text" id="mIn" placeholder="예: 오전 8시까지 본부석 집결">
+        <input type="text" id="mIn" placeholder="전체 공지 입력">
 
-        <label>서브 페이지(출입키) 팀 지침</label>
-        <input type="text" id="sIn" placeholder="예: 무대 뒤편 장비 선 조심">
+        <label>팀별 서브 공지사항</label>
+        <input type="text" id="sIn" placeholder="팀별 지침 입력">
 
-        <button onclick="saveNotices()">공지 즉시 반영</button>
+        <label>새로운 시스템 암호</label>
+        <input type="password" id="pIn" placeholder="기존 암호 유지 시 비워두세요">
 
-        <hr style="margin:40px 0; border:0; border-top:1px solid #333;">
-
-        <label>보안 암호 변경 (기본값: 2026)</label>
-        <input type="password" id="pIn" placeholder="새로운 숫자 암호 입력">
-        <button onclick="savePassword()">암호 갱신</button>
-
-        <button class="btn-del" onclick="resetSystem()">보안 세션 로그아웃</button>
+        <button onclick="saveToCloud()">모든 기기에 전송 (동기화)</button>
         <a href="index.html" class="back-btn">메인으로 돌아가기</a>
     </div>
 
     <script>
-        function saveNotices() {
-            localStorage.setItem("notice_main", document.getElementById('mIn').value);
-            localStorage.setItem("notice_sub", document.getElementById('sIn').value);
-            alert("✅ 모든 페이지에 공지가 실시간으로 반영되었습니다.");
-        }
-        function savePassword() {
-            if(!document.getElementById('pIn').value) return alert("암호를 입력하세요.");
-            localStorage.setItem("sys_password", document.getElementById('pIn').value);
-            alert("🔐 보안 암호가 변경되었습니다.");
-        }
-        function resetSystem() {
-            sessionStorage.removeItem("staff_session_auth");
-            alert("로그아웃 되었습니다. 다시 인증해야 합니다.");
-            location.href = "index.html";
+        async function saveToCloud() {
+            // 빈칸이 아니면 입력한 값, 빈칸이면 기존 클라우드 값을 유지
+            const newMain = document.getElementById('mIn').value || cloudData.notice_main;
+            const newSub = document.getElementById('sIn').value || cloudData.notice_sub;
+            const newPass = document.getElementById('pIn').value || cloudData.sys_password;
+
+            const newData = {
+                notice_main: newMain,
+                notice_sub: newSub,
+                sys_password: newPass
+            };
+
+            try {
+                // 파이어베이스 클라우드로 데이터 전송 (auth.js에 정의된 DB_URL 사용)
+                await fetch(DB_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newData)
+                });
+                alert("✅ 모든 스태프 기기에 공지와 설정이 성공적으로 전송되었습니다!");
+                location.reload(); // 새로고침
+            } catch (error) {
+                alert("서버 전송 중 오류가 발생했습니다.");
+            }
         }
     </script>
 </body>
