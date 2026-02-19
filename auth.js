@@ -1,48 +1,44 @@
 /* auth.js */
 const CONFIG = {
     PASS_KEY: "sys_password",
-    AUTH_KEY: "staff_session_auth", // 보안 강화를 위해 세션 단위로 관리
     MAIN_NOTICE: "notice_main",
     SUB_NOTICE: "notice_sub",
     DEFAULT_PW: "2026"
 };
 
 async function runSecurity() {
-    const isAuthenticated = sessionStorage.getItem(CONFIG.AUTH_KEY);
-
-    if (!isAuthenticated) {
-        // 1. 지문/생체 인증 시도 (WebAuthn)
-        if (window.PublicKeyCredential) {
-            try {
-                const cred = await navigator.credentials.create({
-                    publicKey: {
-                        challenge: new Uint8Array([1,2,3,4]),
-                        rp: { name: "2026 한기총 발대식" },
-                        user: { id: new Uint8Array([1]), name: "staff", displayName: "스태프" },
-                        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-                        timeout: 60000,
-                        authenticatorSelection: { authenticatorAttachment: "platform" }
-                    }
-                });
-                if (cred) finalizeAuth();
-            } catch (e) { fallbackPassword(); }
-        } else { fallbackPassword(); }
-    } else { showPage(); }
+    // 1. 페이지가 로드될 때마다 무조건 지문/생체 인증 시도
+    if (window.PublicKeyCredential) {
+        try {
+            const cred = await navigator.credentials.create({
+                publicKey: {
+                    challenge: new Uint8Array([1,2,3,4]),
+                    rp: { name: "2026 한기총 발대식" },
+                    user: { id: new Uint8Array([1]), name: "staff", displayName: "스태프" },
+                    pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                    timeout: 60000, // 60초 대기
+                    authenticatorSelection: { authenticatorAttachment: "platform" }
+                }
+            });
+            if (cred) showPage();
+        } catch (e) {
+            // 지문 취소 시 암호 입력으로 전환
+            fallbackPassword();
+        }
+    } else {
+        fallbackPassword();
+    }
 }
 
 function fallbackPassword() {
     const savedPw = localStorage.getItem(CONFIG.PASS_KEY) || CONFIG.DEFAULT_PW;
     const input = prompt("🔐 보안 구역입니다. 암호를 입력하세요.");
-    if (input === savedPw) finalizeAuth();
-    else {
+    if (input === savedPw) {
+        showPage();
+    } else {
         alert("접근이 거부되었습니다.");
-        location.href = "about:blank";
+        document.body.innerHTML = "<h2 style='color:white; text-align:center; margin-top:50px;'>인증 실패: 뒤로 가기를 눌러주세요.</h2>";
     }
-}
-
-function finalizeAuth() {
-    sessionStorage.setItem(CONFIG.AUTH_KEY, "true");
-    showPage();
 }
 
 function showPage() {
@@ -55,5 +51,5 @@ function showPage() {
     if(sBox) sBox.innerText = localStorage.getItem(CONFIG.SUB_NOTICE) || "현장 지침을 준수해 주십시오.";
 }
 
-// 웹페이지가 로드되면 무조건 보안 검사 실행
+// 웹페이지가 켜지면 즉시 보안 검사 실행
 window.addEventListener('DOMContentLoaded', runSecurity);

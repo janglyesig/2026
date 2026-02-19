@@ -2,57 +2,62 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>스텝 본부 - 무대영상</title>
     <script src="auth.js"></script>
     <style>
         :root { --gold: #D4AF37; --navy: #0A192F; --glass: rgba(255, 255, 255, 0.08); }
-        body { background: var(--navy); color: white; font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; display: none; }
-        body.secure-visible { display: block; padding: 30px 20px; max-width: 450px; margin: auto; }
+        * { box-sizing: border-box; } /* 반응형의 기본: 패딩을 너비에 포함 */
 
-        /* 상단 헤더 */
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid rgba(212,175,55,0.5); padding-bottom: 15px; }
-        .header p { font-size: 0.8rem; opacity: 0.6; margin: 0 0 5px 0; }
-        .header h1 { color: var(--gold); font-size: 1.8rem; margin: 0; letter-spacing: 1px; }
+        body { background: var(--navy); color: white; font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; display: none; min-height: 100vh; }
+
+        /* 기기별 중앙 정렬 및 여백 자동 조절 */
+        body.secure-visible { display: flex; flex-direction: column; padding: 6vw 5vw; width: 100%; max-width: 600px; margin: 0 auto; }
+
+        /* 상단 헤더 반응형 */
+        .header { text-align: center; margin-bottom: 5vh; border-bottom: 1px solid rgba(212,175,55,0.5); padding-bottom: 2vh; }
+        .header p { font-size: clamp(0.7rem, 2vw, 0.9rem); opacity: 0.6; margin: 0 0 1vh 0; }
+        .header h1 { color: var(--gold); font-size: clamp(1.6rem, 6vw, 2.2rem); margin: 0; letter-spacing: 1px; }
 
         /* 뷰(화면) 전환 설정 */
-        .view-section { display: none; }
+        .view-section { display: none; flex-grow: 1; }
         .view-section.active { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 1. 메인 메뉴 버튼들 */
-        .menu-grid { display: grid; gap: 15px; }
-        .menu-btn { background: var(--glass); border: 1px solid rgba(212,175,55,0.3); padding: 22px; border-radius: 12px; color: white; font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; cursor: pointer; transition: 0.2s; }
-        .menu-btn:active { background: var(--gold); color: var(--navy); }
-        .menu-btn span { font-size: 1.3rem; margin-right: 15px; } /* 아이콘 크기 */
-        .dummy-btn { opacity: 0.6; border-color: rgba(255,255,255,0.1); } /* 미작동 버튼 스타일 */
+        /* 1. 메인 메뉴 버튼 반응형 */
+        .menu-grid { display: flex; flex-direction: column; gap: 3vw; }
+        .menu-btn { background: var(--glass); border: 1px solid rgba(212,175,55,0.3); padding: clamp(15px, 4vw, 25px); border-radius: 12px; color: white; font-size: clamp(1rem, 4vw, 1.2rem); font-weight: bold; display: flex; align-items: center; cursor: pointer; transition: 0.2s; width: 100%; }
+        .menu-btn:active { background: var(--gold); color: var(--navy); transform: scale(0.98); }
+        .menu-btn span { font-size: clamp(1.2rem, 5vw, 1.5rem); margin-right: 4vw; }
+        .dummy-btn { opacity: 0.6; border-color: rgba(255,255,255,0.1); }
 
-        /* 2. 공지사항 화면 */
-        .notice-box { background: rgba(0,0,0,0.3); padding: 25px; border-radius: 15px; border-left: 4px solid var(--gold); line-height: 1.6; font-size: 0.95rem; word-break: keep-all; }
+        /* 2. 공지사항 화면 반응형 */
+        .notice-box { background: rgba(0,0,0,0.3); padding: 5vw; border-radius: 15px; border-left: 4px solid var(--gold); line-height: 1.6; font-size: clamp(0.9rem, 3.5vw, 1.1rem); word-break: keep-all; }
 
-        /* 3. 출입증(NFC) 화면 */
-        .nfc-container { text-align: center; padding: 50px 20px; background: rgba(0,0,0,0.3); border-radius: 20px; border: 1px solid rgba(212,175,55,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .nfc-ring { width: 140px; height: 140px; border: 2px solid var(--gold); border-radius: 50%; margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; position: relative; }
+        /* 3. 출입증(NFC) 화면 반응형 */
+        .nfc-container { text-align: center; padding: 8vh 5vw; background: rgba(0,0,0,0.3); border-radius: 20px; border: 1px solid rgba(212,175,55,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.3); height: 100%; display: flex; flex-direction: column; justify-content: center; }
+
+        /* 원형 애니메이션 자동 크기 조절 */
+        .nfc-ring { width: clamp(120px, 35vw, 180px); aspect-ratio: 1 / 1; border: 2px solid var(--gold); border-radius: 50%; margin: 0 auto 5vh; display: flex; align-items: center; justify-content: center; position: relative; }
         .nfc-ring::after { content: ""; position: absolute; width: 100%; height: 100%; border: 2px solid var(--gold); border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
 
-        .status-text h2 { color: var(--gold); margin: 0 0 10px; font-size: 1.3rem; }
-        .status-text p { margin: 0; color: #aaa; font-size: 0.95rem; }
+        .status-text h2 { color: var(--gold); margin: 0 0 2vh; font-size: clamp(1.2rem, 5vw, 1.6rem); }
+        .status-text p { margin: 0; color: #aaa; font-size: clamp(0.9rem, 3.5vw, 1.1rem); word-break: keep-all; line-height: 1.4; }
 
-        /* NFC 인증 성공 시 초록색 테마 */
         body.access-granted { background: #064E3B; transition: background 0.5s; }
         body.access-granted .nfc-ring { border-color: #10B981; }
         body.access-granted .nfc-ring::after { border-color: #10B981; }
         body.access-granted .status-text h2 { color: #10B981; }
 
-        /* 하단 돌아가기 버튼 */
-        .back-btn { text-align: center; margin-top: 30px; color: rgba(255,255,255,0.6); text-decoration: underline; font-size: 0.9rem; cursor: pointer; padding: 10px; }
-        .home-btn { display: block; text-align: center; margin-top: 40px; color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.85rem; }
+        /* 하단 버튼들 */
+        .back-btn { text-align: center; margin-top: 5vh; color: rgba(255,255,255,0.6); text-decoration: underline; font-size: clamp(0.9rem, 3.5vw, 1rem); cursor: pointer; padding: 2vh; }
+        .home-btn { display: block; text-align: center; margin-top: 6vh; color: rgba(255,255,255,0.4); text-decoration: none; font-size: clamp(0.85rem, 3vw, 0.95rem); }
     </style>
 </head>
 <body>
     <div class="header">
-        <p>2026 한기총 부경발대식</p>
+        <p>2026 한기총 부산/경남발대식</p>
         <h1>무대영상 팀</h1> </div>
 
     <div id="view-menu" class="view-section active">
@@ -66,24 +71,23 @@
     </div>
 
     <div id="view-notice" class="view-section">
-        <h2 style="color:var(--gold); margin-top:0;">팀 현장 지침</h2>
+        <h2 style="color:var(--gold); margin-top:0; font-size: clamp(1.3rem, 5vw, 1.5rem);">팀 현장 지침</h2>
         <div class="notice-box" id="subNoticeBox">공지사항을 불러오는 중입니다...</div>
         <div class="back-btn" onclick="showView('view-menu')">돌아가기</div>
     </div>
 
     <div id="view-nfc" class="view-section">
         <div class="nfc-container" id="nfcZone">
-            <div class="nfc-ring"><span style="font-size:3rem;">📡</span></div>
+            <div class="nfc-ring"><span style="font-size: clamp(2.5rem, 8vw, 3.5rem);">📡</span></div>
             <div class="status-text">
                 <h2 id="accessTitle">출입키 활성화 됨</h2>
-                <p id="accessDesc">기기 뒷면을 리더기에 태그하세요.</p>
+                <p id="accessDesc">기기 뒷면을 리더기에<br>태그하세요.</p>
             </div>
         </div>
         <div class="back-btn" onclick="closeNfcView()">돌아가기</div>
     </div>
 
     <script>
-        // 화면 전환 함수
         function showView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
@@ -91,11 +95,9 @@
 
         let nfcStarted = false;
 
-        // 출입증 메뉴 클릭 시 NFC 가동
         async function openNfcView() {
             showView('view-nfc');
-
-            if(nfcStarted) return; // 중복 실행 방지
+            if(nfcStarted) return;
 
             if ('NDEFReader' in window) {
                 try {
@@ -113,7 +115,7 @@
                     document.getElementById('accessDesc').innerText = "스마트폰의 NFC 기능을 켜주세요.";
                 }
             } else {
-                document.getElementById('accessDesc').innerText = "(NFC 미지원 기기 - 화면을 터치해 수동 승인)";
+                document.getElementById('accessDesc').innerHTML = "(NFC 미지원 기기)<br>화면을 터치해 수동 승인";
                 document.getElementById('nfcZone').onclick = () => {
                     document.body.classList.add('access-granted');
                     document.getElementById('accessTitle').innerText = "관리자 수동 승인";
@@ -121,18 +123,16 @@
             }
         }
 
-        // 출입증 화면에서 빠져나올 때 원래 색상과 텍스트로 초기화
         function closeNfcView() {
             document.body.classList.remove('access-granted');
             document.getElementById('accessTitle').innerText = "출입키 활성화 됨";
 
             if ('NDEFReader' in window) {
-                document.getElementById('accessDesc').innerText = "기기 뒷면을 리더기에 태그하세요.";
+                document.getElementById('accessDesc').innerHTML = "기기 뒷면을 리더기에<br>태그하세요.";
             } else {
-                document.getElementById('accessDesc').innerText = "(NFC 미지원 기기 - 화면을 터치해 수동 승인)";
+                document.getElementById('accessDesc').innerHTML = "(NFC 미지원 기기)<br>화면을 터치해 수동 승인";
             }
-
-            showView('view-menu'); // 메뉴 화면으로 돌아가기
+            showView('view-menu');
         }
     </script>
 </body>
