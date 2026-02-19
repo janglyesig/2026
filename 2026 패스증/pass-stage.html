@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFC PASS</title>
+    <script src="auth.js"></script>
+    <style>
+        body { background: #0A192F; color: white; font-family: sans-serif; margin: 0; display: none; }
+        body.secure-visible { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .nfc-ring { width: 180px; height: 180px; border: 2px solid #D4AF37; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
+        .nfc-ring::after { content: ""; position: absolute; width: 100%; height: 100%; border: 2px solid #D4AF37; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
+        .msg { margin-top: 40px; text-align: center; }
+        .msg h2 { color: #D4AF37; letter-spacing: 2px; }
+        #subNoticeBox { margin-top: 20px; opacity: 0.5; font-size: 0.8rem; padding: 0 40px; }
+        body.access { background: #064E3B; transition: 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="nfc-ring"><span style="font-size:3rem;">📡</span></div>
+    <div class="msg">
+        <h2 id="st">출입증(NFC) 태그</h2>
+        <p id="desc">기기 뒷면에 스텝 카드를 태그하세요.</p>
+    </div>
+    <div id="subNoticeBox">지침 불러오는 중...</div>
+    <a href="index.html" style="position:absolute; bottom:30px; color:#666; text-decoration:none;">홈으로</a>
+
+    <script>
+        async function startNFC() {
+            if ('NDEFReader' in window) {
+                try {
+                    const reader = new NDEFReader();
+                    await reader.scan();
+                    reader.onreading = ({ serialNumber }) => {
+                        document.body.classList.add('access');
+                        document.getElementById('st').innerText = "승인 완료";
+                        document.getElementById('desc').innerText = "정상적으로 인증되었습니다. (ID: "+serialNumber+")";
+                        if(navigator.vibrate) navigator.vibrate(200);
+                    };
+                } catch (e) { document.getElementById('desc').innerText = "NFC 활성화 필요"; }
+            } else {
+                document.getElementById('desc').innerText = "NFC 미지원 브라우저입니다.";
+                document.body.onclick = () => { document.body.classList.add('access'); document.getElementById('st').innerText="수동 승인됨"; };
+            }
+        }
+        setTimeout(startNFC, 1500);
+    </script>
+</body>
+</html>
