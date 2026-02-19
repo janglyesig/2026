@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 한기총 발대식 본부</title>
+    <script src="auth.js"></script>
+    <style>
+        :root { --gold: #D4AF37; --navy: #0A192F; --glass: rgba(255, 255, 255, 0.05); }
+        body { background: var(--navy); color: white; font-family: sans-serif; margin: 0; display: none; }
+        body.secure-visible { display: block; }
+        .container { max-width: 480px; margin: auto; padding: 40px 20px; }
+        .header { text-align: center; border-bottom: 1px solid var(--gold); padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { font-size: 1.5rem; color: var(--gold); letter-spacing: 2px; }
+        .notice-card { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 30px; backdrop-filter: blur(10px); }
+        .menu-grid { display: grid; gap: 12px; }
+        .menu-item { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; text-decoration: none; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .menu-item:active { background: var(--gold); color: var(--navy); }
+        .admin-link { margin-top: 30px; text-align: center; opacity: 0.5; }
+        .admin-link a { color: var(--gold); text-decoration: none; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <p style="font-size:0.7rem; opacity:0.6;">AUTHENTICATED STAFF ONLY</p>
+            <h1>2026 한기총 부경발대식</h1>
+        </div>
+        <div class="notice-card">
+            <h3 style="color:var(--gold); margin-top:0; font-size:0.9rem;">📢 공지사항</h3>
+            <div id="mainNoticeBox">불러오는 중...</div>
+        </div>
+        <div class="menu-grid">
+            <a href="pass-stage.html" class="menu-item"><span>무대계도 팀</span><span>〉</span></a>
+            <a href="pass-video.html" class="menu-item"><span>영상 팀</span><span>〉</span></a>
+            <a href="pass-light.html" class="menu-item"><span>조명 팀</span><span>〉</span></a>
+            <a href="pass-sound.html" class="menu-item"><span>음향 팀</span><span>〉</span></a>
+        </div>
+        <div class="admin-link"><a href="admin.html">관리자 제어 패널</a></div>
+    </div>
+</body>
+</html>

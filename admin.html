@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>시스템 관리자</title>
+    <script src="auth.js"></script>
+    <style>
+        body { background: #050a14; color: #eee; font-family: sans-serif; display:none; padding: 20px; }
+        body.secure-visible { display: block; }
+        .panel { max-width: 500px; margin: auto; background: #111; padding: 25px; border-radius: 20px; border: 1px solid #333; }
+        h2 { color: #D4AF37; border-left: 4px solid #D4AF37; padding-left: 10px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #D4AF37; border: none; font-weight: bold; border-radius: 8px; margin-top: 10px; cursor: pointer; }
+        .btn-del { background: #d9534f; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h2>🛠️ 시스템 통합 관리</h2>
+        <p>현장 공지 및 보안 암호 관리</p>
+
+        <label>메인 공지사항</label>
+        <input type="text" id="mIn" placeholder="메인 화면 공지 문구">
+        <label>서브 페이지 지침</label>
+        <input type="text" id="sIn" placeholder="출입증 하단 안내 문구">
+        <button onclick="saveN()">공지 업데이트</button>
+
+        <hr style="margin:30px 0; opacity:0.1;">
+
+        <label>시스템 암호 변경</label>
+        <input type="password" id="pIn" placeholder="새 암호 입력">
+        <button onclick="saveP()">암호 갱신</button>
+
+        <button class="btn-del" onclick="resetSys()">인증 로그아웃 및 초기화</button>
+    </div>
+    <script>
+        function saveN() {
+            localStorage.setItem("notice_main", document.getElementById('mIn').value);
+            localStorage.setItem("notice_sub", document.getElementById('sIn').value);
+            alert("공지가 즉시 반영되었습니다.");
+        }
+        function saveP() {
+            localStorage.setItem("sys_password", document.getElementById('pIn').value);
+            alert("보안 암호가 변경되었습니다.");
+        }
+        function resetSys() {
+            if(confirm("모든 보안 데이터를 초기화합니까?")) {
+                localStorage.clear();
+                location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>
