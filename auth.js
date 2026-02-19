@@ -1,7 +1,7 @@
 /* auth.js */
 
 // 🔥 이곳에 파이어베이스에서 복사한 주소를 넣고 끝에 'appData.json'을 꼭 붙여주세요!
-const DB_URL = "https://hq2026-42c67-default-rtdb.firebaseio.com";
+const DB_URL = "https://hq2026-42c67-default-rtdb.firebaseio.com/appData.json";
 
 // 기본 데이터 세팅
 let cloudData = {
