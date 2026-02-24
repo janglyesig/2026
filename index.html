@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>서울아트센터 스텝 본부</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0A192F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SAC 본부">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <script src="auth.js"></script>
     <style>
         :root { --gold: #D4AF37; --navy: #0A192F; --glass: rgba(255, 255, 255, 0.08); }
@@ -41,5 +48,15 @@
     </div>
 
     <div class="admin-link"><a href="admin.html">🛠️ 관리자 제어 패널</a></div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('서비스 워커 등록 완료!', reg))
+                    .catch(err => console.log('서비스 워커 등록 실패', err));
+            });
+        }
+    </script>
 </body>
 </html>
