@@ -2,99 +2,77 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>시스템 관리자</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>서울아트센터 시스템 관리</title>
     <script src="auth.js"></script>
     <style>
-        body { background: #050a14; color: #eee; font-family: sans-serif; display:none; padding: 20px; }
+        * { box-sizing: border-box; }
+        body { background: #050a14; color: #eee; font-family: sans-serif; display:none; padding: 5vw; min-height: 100vh;}
         body.secure-visible { display: block; }
-        .panel { max-width: 600px; margin: auto; background: #111; padding: 25px; border-radius: 20px; border: 1px solid #D4AF37; }
-        h2 { color: #D4AF37; border-left: 4px solid #D4AF37; padding-left: 10px; margin-top: 0; }
-        h3 { font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 30px; }
-        
-        /* 공지사항 목록 스타일 */
+        .panel { max-width: 600px; margin: auto; background: #111; padding: 6vw; border-radius: 20px; border: 1px solid #D4AF37; }
+        h2 { color: #D4AF37; border-left: 4px solid #D4AF37; padding-left: 10px; margin-top: 0; font-size: clamp(1.3rem, 5vw, 1.6rem); }
+        h3 { font-size: clamp(1rem, 4vw, 1.2rem); border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 30px; }
         .notice-item { background: #222; border: 1px solid #444; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
         .notice-text { font-size: 0.9rem; line-height: 1.4; color: #ddd; flex-grow: 1; }
         .notice-date { font-size: 0.75rem; color: #D4AF37; margin-bottom: 5px; }
-        
-        /* 버튼 및 입력창 스타일 */
-        textarea { width: 100%; padding: 15px; margin: 10px 0; background: #1a1a1a; border: 1px solid #555; color: white; border-radius: 8px; resize: vertical; box-sizing: border-box; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #1a1a1a; border: 1px solid #555; color: white; border-radius: 8px; box-sizing: border-box; }
-        
-        .btn-add { background: #D4AF37; color: #000; border: none; padding: 12px; font-weight: bold; border-radius: 8px; width: 100%; cursor: pointer; }
+        textarea, input { width: 100%; padding: 15px; margin: 10px 0; background: #1a1a1a; border: 1px solid #555; color: white; border-radius: 8px; resize: vertical; }
+        .btn-add { background: #D4AF37; color: #000; border: none; padding: 15px; font-weight: bold; border-radius: 8px; width: 100%; cursor: pointer; font-size: 1rem; }
         .btn-del { background: transparent; border: 1px solid #d9534f; color: #d9534f; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
-        
-        .back-btn { display: block; text-align: center; margin-top: 30px; color: #666; text-decoration: underline; }
+        .back-btn { display: block; text-align: center; margin-top: 30px; color: #666; text-decoration: underline; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="panel">
-        <h2>🛠️ 클라우드 통합 관리</h2>
-        
+        <h2>🛠️ 서울아트센터 통합 관리</h2>
+
         <h3>📢 메인 화면 공지사항 관리</h3>
         <div id="mainAdminList"></div>
-        <textarea id="mIn" rows="3" placeholder="새 메인 공지를 입력하세요"></textarea>
+        <textarea id="mIn" rows="3" placeholder="새 메인 공지를 여러 줄로 입력하세요"></textarea>
         <button class="btn-add" onclick="addNotice('main')">+ 메인 공지 추가하기</button>
 
         <h3>🚩 팀별 서브 공지(지침) 관리</h3>
         <div id="subAdminList"></div>
-        <textarea id="sIn" rows="3" placeholder="새 서브 공지를 입력하세요"></textarea>
+        <textarea id="sIn" rows="3" placeholder="새 서브 공지를 여러 줄로 입력하세요"></textarea>
         <button class="btn-add" onclick="addNotice('sub')">+ 서브 공지 추가하기</button>
 
         <h3>🔐 시스템 암호 변경</h3>
-        <input type="password" id="pIn" placeholder="새 암호를 입력하고 아래 갱신 버튼을 누르세요">
-        <button class="btn-add" style="background:#555; color:white;" onclick="changePassword()">암호만 갱신하기</button>
+        <input type="password" id="pIn" placeholder="새 암호를 입력하세요">
+        <button class="btn-add" style="background:#555; color:white;" onclick="changePassword()">암호 갱신하기</button>
 
-        <a href="index.html" class="back-btn">메인으로 돌아가기</a>
+        <a href="index.html" class="back-btn">메인 로비로 돌아가기</a>
     </div>
 
     <script>
-        // 관리자 화면이 켜지면 공지 리스트를 그려줌
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 renderAdminList('mainAdminList', cloudData.notices_main, 'main');
                 renderAdminList('subAdminList', cloudData.notices_sub, 'sub');
-            }, 500); // 클라우드 데이터 로드 대기
+            }, 500);
         });
 
-        // 현재 날짜 포맷팅 함수 (예: "2026. 2. 19. 19:30")
         function getNowDate() {
             const now = new Date();
             return `${now.getFullYear()}. ${now.getMonth()+1}. ${now.getDate()}. ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
         }
 
-        // 공지 추가 함수
         async function addNotice(type) {
             const inputId = type === 'main' ? 'mIn' : 'sIn';
             const text = document.getElementById(inputId).value.trim();
             if (!text) return alert("내용을 입력하세요.");
-
-            const newNotice = {
-                id: Date.now(), // 고유 ID 부여
-                text: text,
-                date: getNowDate()
-            };
-
+            const newNotice = { id: Date.now(), text: text, date: getNowDate() };
             if (type === 'main') cloudData.notices_main.push(newNotice);
             else cloudData.notices_sub.push(newNotice);
-
             await syncCloud();
-            document.getElementById(inputId).value = ""; // 입력창 비우기
+            document.getElementById(inputId).value = "";
         }
 
-        // 공지 삭제 함수
         async function deleteNotice(type, id) {
-            if (!confirm("이 공지를 삭제하시겠습니까?")) return;
-
-            if (type === 'main') {
-                cloudData.notices_main = cloudData.notices_main.filter(n => n.id !== id);
-            } else {
-                cloudData.notices_sub = cloudData.notices_sub.filter(n => n.id !== id);
-            }
+            if (!confirm("삭제하시겠습니까?")) return;
+            if (type === 'main') cloudData.notices_main = cloudData.notices_main.filter(n => n.id !== id);
+            else cloudData.notices_sub = cloudData.notices_sub.filter(n => n.id !== id);
             await syncCloud();
         }
 
-        // 암호 변경 함수
         async function changePassword() {
             const pw = document.getElementById('pIn').value;
             if(!pw) return alert("암호를 입력하세요.");
@@ -103,36 +81,27 @@
             document.getElementById('pIn').value = "";
         }
 
-        // 클라우드에 최종 저장하는 함수
         async function syncCloud() {
             try {
-                // cloudData 객체를 통째로 파이어베이스에 덮어씀
                 await fetch(DB_URL, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(cloudData)
                 });
-                alert("✅ 성공적으로 서버에 동기화되었습니다.");
-                
-                // 화면 리스트 새로고침
+                alert("✅ 서울아트센터 서버에 동기화되었습니다.");
                 renderAdminList('mainAdminList', cloudData.notices_main, 'main');
                 renderAdminList('subAdminList', cloudData.notices_sub, 'sub');
-            } catch (error) {
-                alert("통신 오류가 발생했습니다.");
-            }
+            } catch (error) { alert("통신 오류가 발생했습니다."); }
         }
 
-        // 관리자용 리스트 렌더링 함수
         function renderAdminList(elementId, array, type) {
             const el = document.getElementById(elementId);
             if (!array || array.length === 0) {
                 el.innerHTML = "<p style='color:#777; font-size:0.9rem;'>등록된 공지가 없습니다.</p>";
                 return;
             }
-            
             let html = "";
-            const sorted = [...array].reverse(); // 최신글 상단 노출
-            
+            const sorted = [...array].reverse();
             sorted.forEach(n => {
                 html += `
                 <div class="notice-item">

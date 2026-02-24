@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>서울아트센터 - 무대음향</title>
+    <script src="auth.js"></script>
+    <style>
+        :root { --gold: #D4AF37; --navy: #0A192F; --glass: rgba(255, 255, 255, 0.08); }
+        * { box-sizing: border-box; }
+        body { background: var(--navy); color: white; font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; display: none; min-height: 100vh; }
+        body.secure-visible { display: flex; flex-direction: column; padding: 6vw 5vw; width: 100%; max-width: 600px; margin: 0 auto; }
+
+        .header { text-align: center; margin-bottom: 5vh; border-bottom: 1px solid rgba(212,175,55,0.5); padding-bottom: 2vh; }
+        .header p { font-size: clamp(0.7rem, 2vw, 0.9rem); opacity: 0.6; margin: 0 0 1vh 0; letter-spacing: 1px; }
+        .header h1 { color: var(--gold); font-size: clamp(1.6rem, 6vw, 2.2rem); margin: 0; }
+
+        .view-section { display: none; flex-grow: 1; }
+        .view-section.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .menu-grid { display: flex; flex-direction: column; gap: 3vw; }
+        .menu-btn { background: var(--glass); border: 1px solid rgba(212,175,55,0.3); padding: clamp(15px, 4vw, 25px); border-radius: 12px; color: white; font-size: clamp(1rem, 4vw, 1.2rem); font-weight: bold; display: flex; align-items: center; cursor: pointer; transition: 0.2s; width: 100%; }
+        .menu-btn:active { background: var(--gold); color: var(--navy); transform: scale(0.98); }
+        .menu-btn span { font-size: clamp(1.2rem, 5vw, 1.5rem); margin-right: 4vw; }
+        .dummy-btn { opacity: 0.6; border-color: rgba(255,255,255,0.1); }
+
+        .nfc-container { text-align: center; padding: 8vh 5vw; background: rgba(0,0,0,0.3); border-radius: 20px; border: 1px solid rgba(212,175,55,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.3); height: 100%; display: flex; flex-direction: column; justify-content: center; }
+        .nfc-ring { width: clamp(120px, 35vw, 180px); aspect-ratio: 1 / 1; border: 2px solid var(--gold); border-radius: 50%; margin: 0 auto 5vh; display: flex; align-items: center; justify-content: center; position: relative; }
+        .nfc-ring::after { content: ""; position: absolute; width: 100%; height: 100%; border: 2px solid var(--gold); border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+
+        .status-text h2 { color: var(--gold); margin: 0 0 2vh; font-size: clamp(1.2rem, 5vw, 1.6rem); }
+        .status-text p { margin: 0; color: #aaa; font-size: clamp(0.9rem, 3.5vw, 1.1rem); word-break: keep-all; line-height: 1.4; }
+
+        body.access-granted { background: #064E3B; transition: background 0.5s; }
+        body.access-granted .nfc-ring { border-color: #10B981; }
+        body.access-granted .nfc-ring::after { border-color: #10B981; }
+        body.access-granted .status-text h2 { color: #10B981; }
+
+        .back-btn { text-align: center; margin-top: 5vh; color: rgba(255,255,255,0.6); text-decoration: underline; font-size: clamp(0.9rem, 3.5vw, 1rem); cursor: pointer; padding: 2vh; }
+        .home-btn { display: block; text-align: center; margin-top: 6vh; color: rgba(255,255,255,0.4); text-decoration: none; font-size: clamp(0.85rem, 3vw, 0.95rem); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <p>SEOUL ART CENTER</p>
+        <h1>무대음향 팀</h1> </div>
+
+    <div id="view-menu" class="view-section active">
+        <div class="menu-grid">
+            <div class="menu-btn" onclick="showView('view-notice')"><span>📢</span> 센터 현장 지침</div>
+            <div class="menu-btn" onclick="openNfcView()"><span>🪪</span> 스마트 출입증</div>
+            <div class="menu-btn dummy-btn" onclick="alert('현재 개발/준비 중인 메뉴입니다.')"><span>⚙️</span> 장비 ON/OFF 내역</div>
+            <div class="menu-btn dummy-btn" onclick="alert('현재 등록된 기타 자료가 없습니다.')"><span>📁</span> 기타 자료</div>
+        </div>
+        <a href="index.html" class="home-btn">← 메인 로비로 돌아가기</a>
+    </div>
+
+    <div id="view-notice" class="view-section">
+        <h2 style="color:var(--gold); margin-top:0; font-size: clamp(1.3rem, 5vw, 1.5rem);">팀 세부 지침</h2>
+        <div id="subNoticeBox">공지사항을 불러오는 중입니다...</div>
+        <div class="back-btn" onclick="showView('view-menu')">돌아가기</div>
+    </div>
+
+    <div id="view-nfc" class="view-section">
+        <div class="nfc-container" id="nfcZone">
+            <div class="nfc-ring"><span style="font-size: clamp(2.5rem, 8vw, 3.5rem);">📡</span></div>
+            <div class="status-text">
+                <h2 id="accessTitle">출입키 대기 중</h2>
+                <p id="accessDesc">기기 뒷면을 센터 리더기에<br>태그하세요.</p>
+            </div>
+        </div>
+        <div class="back-btn" onclick="closeNfcView()">돌아가기</div>
+    </div>
+
+    <script>
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        let nfcStarted = false;
+
+        async function openNfcView() {
+            showView('view-nfc');
+            if(nfcStarted) return;
+
+            if ('NDEFReader' in window) {
+                try {
+                    const reader = new NDEFReader();
+                    await reader.scan();
+                    nfcStarted = true;
+
+                    reader.onreading = ({ serialNumber }) => {
+                        document.body.classList.add('access-granted');
+                        document.getElementById('accessTitle').innerText = "출입 승인 완료";
+                        document.getElementById('accessDesc').innerText = "승인 ID: " + serialNumber;
+                        if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    };
+                } catch (error) {
+                    document.getElementById('accessDesc').innerText = "스마트폰의 NFC 기능을 켜주세요.";
+                }
+            } else {
+                document.getElementById('accessDesc').innerHTML = "(NFC 미지원 기기)<br>화면을 터치해 수동 승인";
+                document.getElementById('nfcZone').onclick = () => {
+                    document.body.classList.add('access-granted');
+                    document.getElementById('accessTitle').innerText = "관리자 수동 승인";
+                };
+            }
+        }
+
+        function closeNfcView() {
+            document.body.classList.remove('access-granted');
+            document.getElementById('accessTitle').innerText = "출입키 대기 중";
+
+            if ('NDEFReader' in window) {
+                document.getElementById('accessDesc').innerHTML = "기기 뒷면을 센터 리더기에<br>태그하세요.";
+            } else {
+                document.getElementById('accessDesc').innerHTML = "(NFC 미지원 기기)<br>화면을 터치해 수동 승인";
+            }
+            showView('view-menu');
+        }
+    </script>
+</body>
+</html>
