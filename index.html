@@ -3,38 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>무대음향 스마트 관제실</title>
+    <title>서울아트센터 본부</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0F172A">
     <script src="auth.js"></script>
     <style>
-        /* 야외 시인성을 극대화한 고대비 컬러 스킴 */
-        :root { 
-            --gold: #FACC15; --navy: #0F172A; --card-bg: #1E293B; --border: #334155;
-            --success: #10B981; --danger: #EF4444; --blue: #3B82F6;
-        }
+        /* 야외 시인성을 위한 고대비 컬러 스킴 (이모티콘 배제) */
+        :root { --gold: #FACC15; --navy: #0F172A; --card-bg: #1E293B; --border: #334155; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body { 
             background: var(--navy); 
             color: white; font-family: 'Apple SD Gothic Neo', sans-serif; 
-            margin: 0; min-height: 100vh; display: none; flex-direction: column; 
-            overflow-x: hidden;
+            margin: 0; padding: 8vw 5vw; min-height: 100vh; 
+            display: none; /* auth.js 인증 전까지 숨김 */
+            flex-direction: column; align-items: center; 
         }
         body.secure-visible { display: flex; }
-        ::-webkit-scrollbar { display: none; }
-
-        .main-container { padding: 8vw 5vw; width: 100%; max-width: 600px; margin: 0 auto; z-index: 1; }
-
-        .header { text-align: center; margin-bottom: 5vh; }
+        
+        .wrapper { width: 100%; max-width: 600px; z-index: 10; margin: 0 auto; }
+        
+        .header { text-align: center; margin-bottom: 5vh; margin-top: 3vh; }
         .header p { font-size: 0.85rem; color: var(--gold); margin: 0 0 5px 0; letter-spacing: 2px; font-weight: bold; }
-        .header h1 { font-size: 2.2rem; margin: 0; font-weight: 800; letter-spacing: -1px; }
+        .header h1 { font-size: 2.2rem; margin: 0; font-weight: 900; letter-spacing: -1px; }
+        
+        /* 공지사항 카드 스타일 */
+        .notice-card { background: var(--card-bg); border: 2px solid var(--border); padding: 25px 20px; border-radius: 16px; margin-bottom: 35px; }
+        .notice-card h2 { color: var(--gold); margin: 0 0 20px 0; font-size: 1.4rem; font-weight: 900; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
+        .notice-item { background: var(--navy); padding: 18px; border-radius: 10px; margin-bottom: 12px; border-left: 4px solid var(--gold); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .notice-date { font-size: 0.85rem; color: var(--gold); margin-bottom: 8px; font-weight: bold; }
+        .notice-text { font-size: 15px; line-height: 1.6; font-weight: bold; }
 
+        /* 팀별 진입 버튼 스타일 */
         .menu-grid { display: flex; flex-direction: column; gap: 4vw; }
         .smart-btn { 
             background: var(--card-bg); 
             border: 2px solid var(--border); 
-            padding: 24px 20px; border-radius: 16px; color: white; font-size: 1.2rem; font-weight: 800; 
-            display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; 
+            padding: 24px 20px; border-radius: 16px; color: white; font-size: 1.25rem; font-weight: 800; 
+            display: flex; justify-content: space-between; align-items: center; text-decoration: none; transition: 0.2s; 
         }
+        .smart-btn:active { transform: scale(0.97); border-color: var(--gold); background: #2A364A; }
+        .smart-btn span.arrow { color: var(--gold); opacity: 0.8; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="header">
+        <p>SEOUL ART CENTER</p>
+        <h1>스태프 통합 로비</h1>
+    </div>
+
+    <div class="notice-card">
+        <h2>전부서 통합 공지사항</h2>
+        <div id="uiMainNoticeList">서버에서 공지사항을 동기화 중입니다...</div>
+    </div>
+
+    <div class="menu-grid">
+        <a href="sac-sound.html" class="smart-btn" style="border-color: var(--gold);">
+            <div>무대음향 팀 관제실</div>
+            <span class="arrow">〉</span>
+        </a>
+        <a href="sac-stage.html" class="smart-btn">
+            <div>무대계도 팀</div>
+            <span class="arrow">〉</span>
+        </a>
+        <a href="sac-light.html" class="smart-btn">
+            <div>무대조명 팀</div>
+            <span class="arrow">〉</span>
+        </a>
+        <a href="sac-video.html" class="smart-btn">
+            <div>무대영상 팀</div>
+            <span class="arrow">〉</span>
+        </a>
+    </div>
+</div>
+
+<script>
+    // auth.js 인증 후 호출되는 공지사항 렌더링 함수
+    window.syncNoticeUI = function() {
+        const box = document.getElementById('uiMainNoticeList');
+        
+        // 데이터가 없거나 비어있는 경우
+        if (!window.cloudData || !window.cloudData.notices_main || window.cloudData.notices_main.length === 0) {
+            box.innerHTML = "<div style='opacity:0.5; font-size:15px; font-weight:bold; text-align:center; padding: 20px 0;'>현재 등록된 통합 공지사항이 없습니다.</div>";
+            return;
+        }
+
+        let html = "";
+        const sorted = [...window.cloudData.notices_main].reverse(); // 최신순 정렬
+        sorted.forEach(n => {
+            html += `
+            <div class="notice-item">
+                <div class="notice-date">${n.date}</div>
+                <div class="notice-text">${n.text.replace(/\n/g, '<br>')}</div>
+            </div>`;
+        });
+        box.innerHTML = html;
+    };
+</script>
+
+</body>
+</html>        }
         .smart-btn:active { transform: scale(0.97); background: #2A364A; }
 
         /* 솔리드 스마트창 (야외 빛반사 방지) */
