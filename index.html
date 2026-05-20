@@ -3,60 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>서울아트센터 스텝 본부</title>
-
+    <title>서울아트센터 본부</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0A192F">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="SAC 본부">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <script src="auth.js"></script>
     <style>
         :root { --gold: #D4AF37; --navy: #0A192F; --glass: rgba(255, 255, 255, 0.08); }
         * { box-sizing: border-box; }
-        body { background: var(--navy); color: white; font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; display: none; min-height: 100vh; }
-        body.secure-visible { display: flex; flex-direction: column; padding: 6vw 5vw; width: 100%; max-width: 600px; margin: 0 auto; }
-
-        .notice-card { background: var(--glass); border: 1px solid rgba(212,175,55,0.3); padding: 5vw; border-radius: 15px; margin-bottom: 5vh; backdrop-filter: blur(10px); }
-        .menu-grid { display: flex; flex-direction: column; gap: 3vw; }
-        .menu-item { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); padding: clamp(15px, 4vw, 25px); border-radius: 12px; text-decoration: none; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: clamp(1rem, 4vw, 1.1rem); }
-        .menu-item:active { background: var(--gold); color: var(--navy); }
-        .admin-link { margin-top: 6vh; text-align: center; }
-        .admin-link a { color: var(--gold); text-decoration: none; font-size: clamp(0.8rem, 3vw, 0.9rem); border: 1px solid var(--gold); padding: 1.5vh 4vw; border-radius: 20px; }
+        body { background: var(--navy); color: white; font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 8vw 5vw; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .wrapper { width: 100%; max-width: 500px; }
+        .header { text-align: center; margin-bottom: 6vh; }
+        .header p { font-size: 0.8rem; opacity: 0.5; margin: 0 0 5px 0; letter-spacing: 2px; }
+        .header h1 { color: var(--gold); font-size: 2rem; margin: 0; font-weight: bold; }
+        .menu-grid { display: flex; flex-direction: column; gap: 4vw; }
+        .menu-card { background: var(--glass); border: 1px solid rgba(212,175,55,0.2); padding: 22px; border-radius: 14px; color: white; font-size: 1.1rem; font-weight: bold; display: flex; justify-content: space-between; align-items: center; text-decoration: none; transition: 0.2s; }
+        .menu-card:active { background: var(--gold); color: var(--navy); transform: scale(0.98); }
+        .menu-card span.icon { margin-right: 15px; font-size: 1.3rem; }
+        .menu-card span.arrow { color: var(--gold); opacity: 0.7; }
+        .menu-card:active span.arrow { color: var(--navy); }
     </style>
 </head>
 <body>
-    <div style="background: linear-gradient(135deg, #0A192F 0%, #152b4d 50%, #4a3d13 100%); border-radius: 20px; padding: 40px 20px; text-align: center; position: relative; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); border: 1px solid rgba(212,175,55,0.4);">
-        <div style="position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 250px; height: 250px; background: radial-gradient(circle, rgba(212,175,55,0.25) 0%, rgba(10,25,47,0) 70%); pointer-events: none;"></div>
-        <p style="color: #e0e0e0; font-size: 0.85rem; margin: 0 0 12px 0; opacity: 0.9; letter-spacing: 3px; font-weight: bold;">최고의 무대를 만드는 사람들</p>
-        <h1 style="color: #D4AF37; font-size: 1.8rem; margin: 0; font-weight: 800; text-shadow: 0 4px 6px rgba(0,0,0,0.6); word-break: keep-all;">서울아트센터 본부</h1>
-        <p style="color: #D4AF37; font-size: 0.75rem; margin: 15px 0 0 0; opacity: 0.7; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 10px; width: 60%; margin-left: auto; margin-right: auto;">STAFF & ADMIN ONLY</p>
+
+<div class="wrapper">
+    <div class="header">
+        <p>SEOUL ART CENTER</p>
+        <h1>스태프 본부 로비</h1>
     </div>
 
-    <div class="notice-card">
-        <h3 style="color:var(--gold); margin-top:0; font-size:clamp(1.1rem, 4.5vw, 1.3rem);">📢 센터 현장 공지</h3>
-        <div id="mainNoticeBox" style="font-size: clamp(0.9rem, 3.5vw, 1rem); opacity: 0.9;">불러오는 중...</div>
-    </div>
-
-    <h3 style="font-size: clamp(1rem, 4vw, 1.1rem); opacity: 0.8; margin-bottom: 3vw;">팀별 서브페이지 (출입키)</h3>
     <div class="menu-grid">
-        <a href="sac-stage.html" class="menu-item"><span>🚩 무대계도 팀</span><span>〉</span></a>
-        <a href="sac-video.html" class="menu-item"><span>📽️ 영상 팀</span><span>〉</span></a>
-        <a href="sac-light.html" class="menu-item"><span>💡 조명 팀</span><span>〉</span></a>
-        <a href="sac-sound.html" class="menu-item"><span>🔊 음향 팀</span><span>〉</span></a>
+        <a href="sac-sound.html" class="menu-card" style="border-color: var(--gold); background: rgba(212,175,55,0.05);">
+            <div><span class="icon">🔊</span>무대음향 팀 관제실</div>
+            <span class="arrow">〉</span>
+        </a>
+        <a href="sac-stage.html" class="menu-card">
+            <div><span class="icon">🚩</span>무대계도 팀</div>
+            <span class="arrow">〉</span>
+        </a>
+        <a href="sac-light.html" class="menu-card">
+            <div><span class="icon">💡</span>무대조명 팀</div>
+            <span class="arrow">〉</span>
+        </a>
+        <a href="sac-video.html" class="menu-card">
+            <div><span class="icon">📽️</span>무대영상 팀</div>
+            <span class="arrow">〉</span>
+        </a>
     </div>
+</div>
 
-    <div class="admin-link"><a href="admin.html">🛠️ 관리자 제어 패널</a></div>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('서비스 워커 등록 완료!', reg))
-                    .catch(err => console.log('서비스 워커 등록 실패', err));
-            });
-        }
-    </script>
 </body>
 </html>
