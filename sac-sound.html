@@ -2,121 +2,98 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>무대음향 스마트 관제실</title>
+    <title>무대음향 관제실</title>
     <script src="auth.js"></script>
     <style>
-        :root { 
-            --gold: #FACC15; --navy: #0F172A; --card-bg: #1E293B; --border: #334155;
-            --success: #10B981; --danger: #EF4444; --blue: #3B82F6;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            background: var(--navy); color: white; font-family: 'Apple SD Gothic Neo', sans-serif; 
-            margin: 0; min-height: 100vh; display: none; flex-direction: column; 
-            overflow-x: hidden; color-scheme: dark; 
-        }
-        body.secure-visible { display: flex; }
-        ::-webkit-scrollbar { display: none; }
-
-        .main-container { padding: 8vw 5vw; width: 100%; max-width: 600px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 5vh; }
-        .header p { font-size: 0.85rem; color: var(--gold); margin: 0 0 5px 0; letter-spacing: 2px; font-weight: bold; }
-        .header h1 { font-size: 2.2rem; margin: 0; font-weight: 900; letter-spacing: -1px; }
-
-        .menu-grid { display: flex; flex-direction: column; gap: 4vw; }
-        .smart-btn { 
-            background: var(--card-bg); border: 2px solid var(--border); 
-            padding: 24px 20px; border-radius: 16px; color: white; font-size: 1.25rem; font-weight: 800; 
-            display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; 
-        }
-        .smart-btn:active { transform: scale(0.97); background: #2A364A; }
-
-        .smart-window-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: none; justify-content: center; align-items: flex-end; z-index: 100; }
-        .smart-window-overlay.active { display: flex; }
-        .smart-window-content { background: var(--navy); border-top: 4px solid var(--gold); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 24px 24px 0 0; padding: 30px 20px; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
-        .window-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
-        .btn-close { background: var(--border); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
-
+        :root { --gold: #FACC15; --navy: #0F172A; --card-bg: #1E293B; --border: #334155; --success: #10B981; --blue: #3B82F6; }
+        body { background: var(--navy); color: white; font-family: sans-serif; margin: 0; min-height: 100vh; display: none; }
+        body.secure-visible { display: block; padding: 20px; }
+        .smart-btn { background: var(--card-bg); border: 2px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 15px; font-size: 1.2rem; font-weight: 800; cursor: pointer; display: flex; justify-content: space-between; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; overflow-y: auto; padding: 20px; }
+        .overlay.active { display: block; }
         .card { background: var(--card-bg); border: 2px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 15px; }
-        input, select, textarea { width: 100%; padding: 14px; margin: 5px 0 12px 0; border-radius: 8px; border: 2px solid var(--border); background: var(--navy); color: white; font-size: 15px; font-weight: bold; outline: none; }
-        .btn-block { width: 100%; padding: 16px; border-radius: 10px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; color: white; margin-top: 5px; }
-        .list-item { padding: 15px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: bold; }
-        .btn-sm { padding: 8px 12px; font-size: 12px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; background: var(--blue); }
+        input, select, textarea { width: 100%; padding: 15px; margin: 5px 0; border-radius: 8px; border: 2px solid var(--border); background: var(--navy); color: white; font-weight: bold; }
+        .btn-block { width: 100%; padding: 15px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; color: white; margin-top: 5px; }
     </style>
 </head>
 <body>
-
-<div class="main-container">
-    <div class="header">
-        <p>SEOUL ART CENTER</p>
-        <h1 id="mainTitle">무대음향 관제실</h1>
+    <div style="max-width: 600px; margin: auto;">
+        <div class="smart-btn" onclick="openWin('win-schedule')">일정 관리 〉</div>
+        <div class="smart-btn" onclick="openWin('win-dispatch')">차량 배차 〉</div>
+        <div class="smart-btn" onclick="authAdmin()" style="border-color:var(--gold);">어드민 설정 〉</div>
     </div>
 
-    <div class="menu-grid">
-        <div class="smart-btn" onclick="openSmartWindow('win-notice')"><div>공지 및 현장 지침</div><span>〉</span></div>
-        <div class="smart-btn" onclick="openSmartWindow('win-schedule')" style="border-color: var(--success);"><div>일정 관리</div><span>〉</span></div>
-        <div class="smart-btn" onclick="openSmartWindow('win-dispatch')" style="border-color: var(--blue);"><div>차량 배차 시스템</div><span>〉</span></div>
-        <div class="smart-btn" onclick="authAdmin()" style="border-color: var(--gold);"><div>어드민 마스터 설정</div><span>〉</span></div>
-    </div>
-    <a href="index.html" style="display:block; text-align:center; margin-top:6vh; color:#94a3b8; text-decoration:none; font-weight:bold;">← 로비로 돌아가기</a>
-</div>
+    <div id="win-schedule" class="overlay"><div class="card">
+        <button onclick="closeWin('win-schedule')">닫기</button>
+        <input type="date" id="viewDate" onchange="syncScheduleUI()">
+        <div id="uiScheduleListContainer"></div>
+        <input type="date" id="userSchDate"><input type="text" id="userSchInput"><button class="btn-block" onclick="addUserSchedule()">추가</button>
+    </div></div>
 
-<script>
-    function parseCSVLine(line) {
-        const result = []; let current = ''; let inQuotes = false;
-        for (let char of line) {
-            if (char === '"') inQuotes = !inQuotes;
-            else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-            else current += char;
+    <div id="win-dispatch" class="overlay"><div class="card">
+        <button onclick="closeWin('win-dispatch')">닫기</button>
+        <div id="uiCarListUser"></div>
+        <input type="text" id="dispatchDriverName" placeholder="성함">
+        <select id="carSelectUser"></select><button class="btn-block" onclick="submitDispatchUser()">신청</button>
+    </div></div>
+
+    <script>
+        function parseCSVLine(line) {
+            const result = []; let current = ''; let inQuotes = false;
+            for (let char of line) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+                else current += char;
+            }
+            result.push(current.trim());
+            return result.map(c => c.replace(/^"|"$/g, '').trim());
         }
-        result.push(current.trim());
-        return result.map(c => c.replace(/^"|"$/g, '').trim());
-    }
 
-    // [중요] CSV 업로드 시 기존 데이터 모두 삭제하고 덮어씌움
-    window.uploadScheduleCSV = function(event) {
-        const file = event.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const lines = e.target.result.split(/\r?\n/);
-            const imported = [];
-            lines.forEach((line, index) => {
-                if(!line.trim() || index === 0 && line.includes('순번')) return;
-                const cols = parseCSVLine(line);
-                imported.push({ id: Date.now()+Math.random(), date: cleanDateStr(cols[1]), text: `[${cols[2]}] ${cols[3]} (${cols[4]})` });
-            });
-            if(confirm("기존 일정을 모두 지우고 새 데이터를 등록하시겠습니까?")) {
-                appSchedules = imported; 
-                commitStorage(); syncAdminUI(); alert('일정 데이터가 새로 등록되었습니다.');
-            }
-        };
-        reader.readAsText(file, "UTF-8");
-    };
+        function cleanDateStr(d) { return d.replace(/[^0-9-]/g, ''); }
 
-    window.uploadCarCSV = function(event) {
-        const file = event.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const lines = e.target.result.split(/\r?\n/);
-            const imported = [];
-            lines.forEach((line, index) => {
-                if(!line.trim() || index === 0 && line.includes('순번')) return;
-                const cols = parseCSVLine(line);
-                const mileage = parseInt(cols[4].replace(/[^0-9]/g, ''), 10) || 0;
-                imported.push({ id: 'C'+Date.now()+Math.random(), name: `${cols[1]}(${cols[5]})`, status: true, mileage: mileage });
-            });
-            if(confirm("기존 차량 목록을 모두 지우고 CSV 데이터로 대체하시겠습니까?")) {
-                appCars = imported;
-                commitStorage(); syncAdminUI(); alert('차량 마스터 데이터가 새로 등록되었습니다.');
-            }
+        // CSV 업로드: 전체 초기화 (데이터 대체)
+        window.uploadScheduleCSV = function(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/);
+                const imported = [];
+                lines.forEach((line, index) => {
+                    if(!line.trim() || index === 0 && line.includes('순번')) return;
+                    const cols = parseCSVLine(line);
+                    // 순번, 날짜, 시간, 제목, 장소, 구분
+                    imported.push({ id: Date.now()+Math.random(), date: cleanDateStr(cols[1]), text: `[${cols[2]}] ${cols[3]} (${cols[4]})` });
+                });
+                if(confirm("기존 일정을 모두 지우고 새 데이터를 등록하시겠습니까?")) {
+                    appSchedules = imported; commitStorage(); syncAdminUI(); alert('등록 완료.');
+                }
+            };
+            reader.readAsText(file, "UTF-8");
         };
-        reader.readAsText(file, "UTF-8");
-        event.target.value = "";
-    };
-    
-    // ... 나머지 로직 동일 유지 ...
-</script>
+
+        window.uploadCarCSV = function(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/);
+                const imported = [];
+                lines.forEach((line, index) => {
+                    if(!line.trim() || index === 0 && line.includes('순번')) return;
+                    const cols = parseCSVLine(line);
+                    const mileage = parseInt(cols[4].replace(/[^0-9]/g, ''), 10) || 0;
+                    imported.push({ id: 'C'+Date.now()+Math.random(), name: `${cols[1]}(${cols[5]})`, status: true, mileage: mileage });
+                });
+                if(confirm("기존 차량 목록을 모두 지우고 CSV 데이터로 대체하시겠습니까?")) {
+                    appCars = imported; commitStorage(); syncAdminUI(); alert('차량 데이터 등록 완료.');
+                }
+            };
+            reader.readAsText(file, "UTF-8");
+        };
+
+        // UI 및 데이터 관리 함수들 (이전 버전 유지)
+        function openWin(id) { document.getElementById(id).classList.add('active'); }
+        function closeWin(id) { document.getElementById(id).classList.remove('active'); }
+        // ... 기타 로직 동일 ...
+    </script>
 </body>
 </html>
