@@ -448,7 +448,7 @@
                 alert('유효한 CSV 형식을 찾을 수 없습니다.');
             }
         };
-        reader.readAsText(file, "EUC-KR"); 
+        reader.readAsText(file, "UTF-8"); 
         event.target.value = "";
     };
 
