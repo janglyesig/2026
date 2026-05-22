@@ -503,7 +503,7 @@
                 alert('유효한 차량 CSV 데이터를 찾을 수 없습니다.');
             }
         };
-        reader.readAsText(file, "EUC-KR");
+        reader.readAsText(file, "UTF-8");
         event.target.value = "";
     };
 
