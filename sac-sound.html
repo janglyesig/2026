@@ -3,619 +3,399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>서울아트센터 - 무대음향 관제실</title>
+    <title>무대음향 스마트 관제실</title>
     <script src="auth.js"></script>
     <style>
-        :root {
-            --gold: #D4AF37;
-            --navy: #0A192F;
-            --glass: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(212, 175, 55, 0.2);
-            --success: #10B981;
-            --danger: #EF4444;
-            --blue: #2563EB;
+        /* 야외 시인성을 극대화한 고대비 컬러 스킴 */
+        :root { 
+            --gold: #FACC15; --navy: #0F172A; --card-bg: #1E293B; --border: #334155;
+            --success: #10B981; --danger: #EF4444; --blue: #3B82F6;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        /* 보안 스크립트(auth.js)가 작동하기 전까지 화면을 숨김 처리 */
-        body {
-            background: var(--navy);
-            color: white;
-            font-family: 'Apple SD Gothic Neo', sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            display: none;
-            flex-direction: column;
+        
+        body { 
+            background: var(--navy); 
+            color: white; font-family: 'Apple SD Gothic Neo', sans-serif; 
+            margin: 0; min-height: 100vh; display: none; flex-direction: column; 
+            overflow-x: hidden; color-scheme: dark; 
         }
-        body.secure-visible {
-            display: flex;
+        body.secure-visible { display: flex; }
+        ::-webkit-scrollbar { display: none; }
+
+        .main-container { padding: 8vw 5vw; width: 100%; max-width: 600px; margin: 0 auto; z-index: 1; }
+
+        .header { text-align: center; margin-bottom: 5vh; }
+        .header p { font-size: 0.85rem; color: var(--gold); margin: 0 0 5px 0; letter-spacing: 2px; font-weight: bold; }
+        .header h1 { font-size: 2.2rem; margin: 0; font-weight: 900; letter-spacing: -1px; }
+
+        .menu-grid { display: flex; flex-direction: column; gap: 4vw; }
+        .smart-btn { 
+            background: var(--card-bg); border: 2px solid var(--border); 
+            padding: 24px 20px; border-radius: 16px; color: white; font-size: 1.2rem; font-weight: 800; 
+            display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; 
         }
+        .smart-btn:active { transform: scale(0.97); background: #2A364A; }
 
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            padding: 6vw 5vw;
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            flex-grow: 1;
+        .smart-window-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8);
+            display: none; justify-content: center; align-items: flex-end; z-index: 100; opacity: 0; transition: opacity 0.2s ease;
         }
+        .smart-window-overlay.active { display: flex; opacity: 1; }
+        
+        .smart-window-content {
+            background: var(--navy); border-top: 4px solid var(--gold);
+            width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+            border-radius: 24px 24px 0 0; padding: 30px 20px;
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+        }
+        .smart-window-overlay.active .smart-window-content { transform: translateY(0); }
 
-        .header { text-align: center; margin-bottom: 4vh; border-bottom: 1px solid rgba(212,175,55,0.4); padding-bottom: 2vh; }
-        .header p { font-size: clamp(0.75rem, 2vw, 0.9rem); opacity: 0.6; margin: 0 0 1vh 0; letter-spacing: 1.5px; }
-        .header h1 { color: var(--gold); font-size: clamp(1.5rem, 6vw, 2.1rem); margin: 0; font-weight: 700; }
+        .window-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
+        .window-header h2 { margin: 0; font-size: 1.4rem; font-weight: 900; letter-spacing: -0.5px; line-height: 1.3; }
+        .btn-close { background: var(--border); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
 
-        .view-section { display: none; }
-        .view-section.active { display: block; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .menu-grid { display: flex; flex-direction: column; gap: 3.5vw; }
-        .menu-btn { background: var(--glass); border: 1px solid var(--glass-border); padding: clamp(16px, 4.5vw, 24px); border-radius: 12px; color: white; font-size: clamp(1rem, 4vw, 1.15rem); font-weight: bold; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease; width: 100%; }
-        .menu-btn:active { background: var(--gold); color: var(--navy); transform: scale(0.98); }
-        .menu-btn .btn-left { display: flex; align-items: center; }
-        .menu-btn span.icon { font-size: clamp(1.2rem, 5vw, 1.5rem); margin-right: 4vw; }
-        .menu-btn span.arrow { opacity: 0.6; font-weight: normal; }
-
-        .card { background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); padding: 18px; border-radius: 12px; margin-bottom: 20px; }
-        .card h3 { margin-top: 0; font-size: 1.05rem; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; }
-
-        label { display: block; font-size: 0.85rem; opacity: 0.7; margin-bottom: 5px; margin-top: 10px; }
-        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 12px; margin-top: 4px; margin-bottom: 12px; border-radius: 8px; border: 1px solid rgba(212, 175, 55, 0.3); background: rgba(255, 255, 255, 0.05); color: white; font-size: 14px; outline: none; }
-        input:focus, select:focus { border-color: var(--gold); background: rgba(255, 255, 255, 0.08); }
-        input::placeholder { color: rgba(255, 255, 255, 0.3); }
-        select option { background: var(--navy); color: white; }
-
-        .btn-block { width: 100%; padding: 13px; border-radius: 8px; font-weight: bold; font-size: 15px; border: none; cursor: pointer; transition: opacity 0.2s; }
-        .btn-block:active { opacity: 0.8; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-success { background: var(--success); color: white; }
-
-        .file-upload-wrapper { position: relative; margin-bottom: 15px; }
-        .file-upload-btn { display: block; background: rgba(255,255,255,0.1); border: 1px dashed var(--gold); padding: 15px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--gold); font-weight: bold; }
-        .file-upload-input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .badge.available { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
-        .badge.in-use { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
-
-        .list-item { padding: 14px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: space-between; align-items: center; }
+        .card { background: var(--card-bg); border: 2px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 15px; }
+        input, select, textarea { width: 100%; padding: 14px; margin-top: 5px; margin-bottom: 12px; border-radius: 8px; border: 2px solid var(--border); background: var(--navy); color: white; font-size: 15px; font-weight: bold; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: var(--gold); }
+        .btn-block { width: 100%; padding: 16px; border-radius: 10px; font-weight: 800; font-size: 16px; border: none; cursor: pointer; color: white; margin-top: 5px; }
+        
+        .notice-box { background: var(--navy); padding: 18px; border-radius: 10px; margin-bottom: 12px; border-left: 4px solid var(--gold); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .notice-date { font-size: 0.85rem; color: var(--gold); margin-bottom: 8px; font-weight: bold; }
+        
+        .list-item { padding: 15px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: bold; word-break: keep-all; line-height: 1.4; }
         .list-item:last-child { border-bottom: none; }
-        .item-info { display: flex; flex-direction: column; gap: 4px; }
-        .item-title { font-weight: bold; color: #f3f4f6; }
-        .item-sub { font-size: 12px; color: #9ca3af; }
-
-        .item-actions { display: flex; align-items: center; gap: 6px; }
-        .btn-inline { padding: 5px 9px; font-size: 11px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
-        .btn-inline.edit { background: var(--blue); }
-        .btn-inline.delete { background: var(--danger); }
-        .btn-inline.complete { background: #10B981; box-shadow: 0 2px 4px rgba(16,185,129,0.2); }
-
-        .nfc-container { text-align: center; padding: 6vh 5vw; background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border); }
-        .nfc-ring { width: 130px; aspect-ratio: 1; border: 2px solid var(--gold); border-radius: 50%; margin: 0 auto 4vh; display: flex; align-items: center; justify-content: center; position: relative; }
-        .nfc-ring::after { content: ""; position: absolute; width: 100%; height: 100%; border: 2px solid var(--gold); border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.35); opacity: 0; } }
-
-        body.access-granted { background: #064E3B; transition: background 0.4s; }
-        body.access-granted .nfc-ring { border-color: var(--success); }
-        body.access-granted .nfc-ring::after { border-color: var(--success); }
-
-        .back-btn { text-align: center; margin-top: 4vh; color: rgba(255,255,255,0.5); text-decoration: underline; font-size: 0.95rem; cursor: pointer; padding: 10px; }
-        .hidden { display: none !important; }
-        .csv-guide { font-size: 11px; color: #9ca3af; line-height: 1.4; margin-top: -6px; margin-bottom: 12px; }
+        .btn-sm { padding: 8px 12px; font-size: 12px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; background: var(--blue); white-space: nowrap; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
+<div class="main-container">
     <div class="header">
         <p>SEOUL ART CENTER</p>
-        <h1 id="mainTitle">무대음향 팀 관제본부</h1>
+        <h1 id="mainTitle">무대음향 관제실</h1>
     </div>
 
-    <div id="view-menu" class="view-section active">
-        <div class="menu-grid">
-            <div class="menu-btn" onclick="showView('view-notice')">
-                <div class="btn-left"><span class="icon">📢</span>센터 현장 지침</div>
-                <span class="arrow">〉</span>
-            </div>
-            <div class="menu-btn" onclick="openNfcView()">
-                <div class="btn-left"><span class="icon">🪪</span>스마트 출입증</div>
-                <span class="arrow">〉</span>
-            </div>
-            <div class="menu-btn" onclick="openScheduleView()" style="border-color: #4CAF50;">
-                <div class="btn-left"><span class="icon">📅</span>오늘의 주요 일정</div>
-                <span class="arrow">〉</span>
-            </div>
-            <div class="menu-btn" onclick="openDispatchView()" style="border-color: #2563eb;">
-                <div class="btn-left"><span class="icon">🚐</span>음향실 배차 시스템</div>
-                <span class="arrow">〉</span>
-            </div>
-            <div class="menu-btn" onclick="openAdminView()" style="border-color: var(--gold); background: rgba(212,175,55,0.03);">
-                <div class="btn-left"><span class="icon">⚙️</span>어드민 관리자 모드</div>
-                <span class="arrow">〉</span>
-            </div>
+    <div class="menu-grid">
+        <div class="smart-btn" onclick="openSmartWindow('win-notice')">
+            <div>전부서 공지 및 현장 지침</div>
+            <span style="color: rgba(255,255,255,0.5);">〉</span>
         </div>
-        <a href="index.html" style="display:block; text-align:center; margin-top:6vh; color:rgba(255,255,255,0.4); text-decoration:none; font-size:0.9rem;">← 메인 로비로 돌아가기</a>
+        <div class="smart-btn" onclick="openSmartWindow('win-nfc')">
+            <div>스마트 출입 태그</div>
+            <span style="color: rgba(255,255,255,0.5);">〉</span>
+        </div>
+        <div class="smart-btn" onclick="openSmartWindow('win-schedule')" style="border-color: var(--success);">
+            <div>오늘의 주요 일정</div>
+            <span style="color: rgba(255,255,255,0.5);">〉</span>
+        </div>
+        <div class="smart-btn" onclick="openSmartWindow('win-dispatch')" style="border-color: var(--blue);">
+            <div>보유차량 배차 시스템</div>
+            <span style="color: rgba(255,255,255,0.5);">〉</span>
+        </div>
+        <div class="smart-btn" onclick="authAdmin()" style="margin-top: 2vh; background: var(--navy); border-color: var(--gold);">
+            <div>어드민 마스터 설정</div>
+            <span style="color: var(--gold);">〉</span>
+        </div>
     </div>
+    
+    <a href="index.html" style="display:block; text-align:center; margin-top:6vh; color:rgba(255,255,255,0.4); text-decoration:none; font-size:0.95rem; font-weight:bold;">← 통합 로비로 돌아가기</a>
+</div>
 
-    <div id="view-notice" class="view-section">
-        <h2 style="color:var(--gold); margin-top:0; font-size: 1.25rem; margin-bottom: 20px;">🔊 음향실 세부 현장 지침</h2>
-        <div id="subNoticeBox">지침을 동기화하는 중입니다...</div>
-        <div class="back-btn" onclick="showView('view-menu')">로비로 돌아가기</div>
+<div id="win-notice" class="smart-window-overlay" onclick="closeSmartWindow(event)">
+    <div class="smart-window-content">
+        <div class="window-header">
+            <h2 style="color:var(--gold);">센터 통합 공지</h2>
+            <button class="btn-close" onclick="closeSmartWindowForce('win-notice')">✕</button>
+        </div>
+        <h3 style="font-size: 1.1rem; margin-bottom:12px; color:#fff;">전부서 공지사항</h3>
+        <div id="uiMainNoticeList" style="margin-bottom: 30px;">불러오는 중...</div>
+        <h3 style="font-size: 1.1rem; margin-bottom:12px; color:#fff;">음향팀 세부 현장 지침</h3>
+        <div id="uiSubNoticeList">불러오는 중...</div>
     </div>
+</div>
 
-    <div id="view-nfc" class="view-section">
-        <div class="nfc-container" id="nfcZone">
-            <div class="nfc-ring"><span style="font-size: 2.3rem;">📡</span></div>
-            <div style="text-align:center;">
-                <h2 id="accessTitle" style="color:var(--gold); margin:0 0 10px; font-size:1.4rem;">출입키 대기 중</h2>
-                <p id="accessDesc" style="margin:0; color:#aaa; font-size:0.95rem; line-height:1.4;">스마트폰 뒷면을 센터 사운드 리더기에 태그하세요.</p>
+<div id="win-nfc" class="smart-window-overlay" onclick="closeSmartWindow(event)">
+    <div class="smart-window-content" style="text-align: center;">
+        <div class="window-header">
+            <h2>스마트 출입증</h2>
+            <button class="btn-close" onclick="closeSmartWindowForce('win-nfc')">✕</button>
+        </div>
+        <div style="padding: 4vh 0;">
+            <div style="width: 120px; height: 120px; border: 4px solid var(--gold); border-radius: 50%; margin: 0 auto 4vh; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 1.5rem; font-weight:900; color:var(--gold);">NFC</span>
             </div>
+            <h2 style="color:var(--gold); margin:0 0 10px; font-weight:900;">태그 대기 중</h2>
+            <p style="color:#ccc; font-size:1rem; font-weight:bold;">스마트폰 뒷면을 보안 리더기에 접촉하세요.</p>
         </div>
-        <div class="back-btn" onclick="closeNfcView()">출입 거두기</div>
     </div>
+</div>
 
-    <div id="view-schedule" class="view-section">
-        <h2 style="color:#4CAF50; margin-top:0; font-size:1.25rem; margin-bottom: 18px; line-height: 1.4; word-break: keep-all;">
-            j,lee서장님환영합니다 오늘의일정입니다.
-        </h2>
-
-        <div class="card">
-            <div id="userScheduleContainer" style="line-height:1.6; font-size:14px;"></div>
+<div id="win-schedule" class="smart-window-overlay" onclick="closeSmartWindow(event)">
+    <div class="smart-window-content">
+        <div class="window-header">
+            <h2 style="color:var(--success);">j,lee 서장님, 환영합니다.<br>현장 일정표입니다.</h2>
+            <button class="btn-close" onclick="closeSmartWindowForce('win-schedule')">✕</button>
         </div>
 
-        <div class="card" style="border-color: rgba(76,175,80,0.3);">
-            <h3 style="color:#4CAF50; border-bottom:none; margin-bottom:5px;">⚡ 신규 일정 신속 등록</h3>
-            <p class="csv-guide" style="margin-bottom:10px;">현장에서 발생한 일정을 즉시 추가해 공유하세요.</p>
-            <input type="text" id="userSchInput" placeholder="예: 16:30 리허설룸 콘솔 셋업 점검">
-            <button onclick="addUserSchedule()" class="btn-block btn-success" style="margin-top:5px;">즉시 등록</button>
+        <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <label style="color: var(--success); font-weight: bold; white-space: nowrap;">조회 날짜</label>
+            <input type="date" id="viewDateSelect" onchange="syncScheduleUI()" style="margin: 0; padding: 10px;">
         </div>
 
-        <div class="back-btn" onclick="showView('view-menu')">메인 메뉴로</div>
+        <div class="card" id="uiScheduleListContainer" style="min-height: 100px;"></div>
+        
+        <div class="card" style="border-color: var(--success);">
+            <h4 style="margin:0 0 12px 0; color:var(--success); font-size:1.1rem;">지정일자 일정 등록</h4>
+            <div style="display:flex; gap:8px;">
+                <input type="date" id="userSchDate" style="width: 140px; padding: 10px;">
+                <input type="text" id="userSchInput" placeholder="일정 내용을 입력하세요" style="flex:1;">
+            </div>
+            <button onclick="addUserSchedule()" class="btn-block" style="background:var(--success);">지정 날짜에 추가</button>
+        </div>
     </div>
+</div>
 
-    <div id="view-dispatch" class="view-section">
-        <h2 style="color:#2563eb; margin-top:0; font-size:1.3rem; margin-bottom: 15px;">🚐 음향실 보유차량 배차 현황</h2>
-
-        <div class="card">
-            <h3>현재 차량 운영 상태</h3>
-            <div id="carListUser"></div>
+<div id="win-dispatch" class="smart-window-overlay" onclick="closeSmartWindow(event)">
+    <div class="smart-window-content">
+        <div class="window-header">
+            <h2 style="color:var(--blue);">보유차량 배차 현황</h2>
+            <button class="btn-close" onclick="closeSmartWindowForce('win-dispatch')">✕</button>
         </div>
-
-        <div class="card" style="border-color: rgba(37,99,235,0.3);">
-            <h3>운행 배차 신청서</h3>
-            <label>운행 신청자 성함</label>
-            <input type="text" id="dispatchDriverName" placeholder="예: 15기 김음향">
-
-            <label>배차 희망 차량 목록</label>
+        <div class="card" id="uiCarListUser"></div>
+        <div class="card" style="border-color: var(--blue);">
+            <h4 style="margin:0 0 12px 0; color:var(--blue); font-size:1.1rem;">배차 신청 작성</h4>
+            <input type="text" id="dispatchDriverName" placeholder="신청자 성함">
             <select id="carSelectUser"></select>
-
-            <button onclick="submitDispatchUser()" class="btn-block btn-blue" style="margin-top:10px;">배차 등록 및 안전운행</button>
+            <button onclick="submitDispatchUser()" class="btn-block" style="background:var(--blue);">배차 신청 완료</button>
         </div>
-
-        <div class="back-btn" onclick="showView('view-menu')">메인 메뉴로</div>
     </div>
+</div>
 
-    <div id="view-admin" class="view-section">
-        <h2 style="color:var(--gold); margin-top:0; font-size:1.3rem; margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
-            <span>⚙️ 어드민 종합 통제소 (음향실)</span>
-            <button onclick="exitAdminView()" class="btn-inline" style="background:#4b5563;">로그아웃</button>
-        </h2>
-
-        <div class="card" style="border-color: #4CAF50;">
-            <h3 style="color:#4CAF50;">📅 일정 관리 및 CSV 대량 동기화</h3>
-            <div class="file-upload-wrapper">
-                <div class="file-upload-btn">📂 일정 CSV 파일 선택 및 업로드</div>
-                <input type="file" id="csvScheduleFile" class="file-upload-input" accept=".csv" onchange="uploadScheduleCSV(event)">
-            </div>
-            <div class="csv-guide">※ CSV 형식: 하나의 열에 일정을 줄바꿈으로 작성하거나 [내용] 형태로 구성합니다.</div>
-
-            <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);">
-                <label>직접 일정 추가</label>
-                <input type="text" id="adminSchInput" placeholder="예: 19:00 콘서트홀 메인 공연 시작">
-                <button onclick="addAdminScheduleDirect()" class="btn-block btn-success" style="padding:10px; font-size:13px; margin-top:5px;">+ 개별 추가</button>
-            </div>
-
-            <h4 style="margin:15px 0 8px 0; color:#4CAF50; font-size:13px;">현재 등록된 일정 편집/삭제</h4>
-            <div id="adminScheduleList" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; max-height:200px; overflow-y:auto;"></div>
+<div id="win-admin" class="smart-window-overlay" onclick="closeSmartWindow(event)">
+    <div class="smart-window-content" style="max-height: 95vh; border-top-color: var(--danger);">
+        <div class="window-header">
+            <h2 style="color:var(--danger);">어드민 종합 통제소</h2>
+            <button class="btn-close" onclick="closeSmartWindowForce('win-admin')">✕</button>
         </div>
 
-        <div class="card" style="border-color: #2563eb;">
-            <h3 style="color:#2563eb;">🚐 차량 마스터 관리 및 CSV 연동</h3>
-            <div class="file-upload-wrapper">
-                <div class="file-upload-btn">📂 차량 데이터 CSV 파일 선택 및 업로드</div>
-                <input type="file" id="csvCarFile" class="file-upload-input" accept=".csv" onchange="uploadCarCSV(event)">
+        <div class="card" style="border-color: var(--success);">
+            <h3 style="margin-top:0; color:var(--success); font-size:1.1rem;">전체 일정 관리</h3>
+            <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:12px;">※ CSV열: 순번,날짜,시간,제목,장소,구분</p>
+            
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <input type="date" id="adminSchDate" style="width: 140px; margin:0; padding:10px;">
+                <input type="text" id="adminSchInput" placeholder="일정 내용" style="flex:1; margin:0;">
             </div>
-            <div class="csv-guide">※ CSV 열 순서: 차량이름, 누적거리(숫자), 상태(대기중/사용중)</div>
+            <button onclick="addAdminScheduleDirect()" class="btn-block" style="background:var(--success); padding:12px; margin-bottom:15px; font-size:14px;">일정 강제 추가</button>
 
-            <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);">
-                <label>새 업무차량 직접 추가</label>
-                <div style="display:flex; gap:6px;">
-                    <input type="text" id="adminCarNameInput" placeholder="차량명(번호)" style="margin-bottom:0;">
-                    <input type="number" id="adminCarMileageInput" placeholder="초기거리(km)" style="width:110px; margin-bottom:0;">
-                </div>
-                <button onclick="addAdminCarDirect()" class="btn-block btn-blue" style="padding:10px; font-size:13px; margin-top:8px;">+ 새 차량 추가</button>
-            </div>
-
-            <h4 style="margin:15px 0 8px 0; color:#2563eb; font-size:13px;">전체 보유차량 관제 및 상태 조율</h4>
-            <div id="adminCarList" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:6px;"></div>
+            <div id="adminScheduleList" style="max-height:150px; overflow-y:auto; margin-bottom:15px; background:var(--navy); padding:10px; border-radius:8px;"></div>
+            
+            <label style="color:#aaa; font-size:12px; margin-bottom:5px; display:block;">일정 CSV 대량 업로드</label>
+            <input type="file" accept=".csv" onchange="uploadScheduleCSV(event)" style="font-size:13px; padding:10px;">
         </div>
 
-        <div class="back-btn" onclick="exitAdminView()">메인 메뉴로 나감</div>
+        <div class="card" style="border-color: var(--blue);">
+            <h3 style="margin-top:0; color:var(--blue); font-size:1.1rem;">전체 차량 관리</h3>
+            <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:12px;">※ CSV열: 순번,차량명,차량타입,년도,누적거리,차량번호</p>
+
+            <div id="adminCarList" style="max-height:150px; overflow-y:auto; margin-bottom:15px; background:var(--navy); padding:10px; border-radius:8px;"></div>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="adminCarNameInput" placeholder="차량명">
+                <input type="number" id="adminCarMileageInput" placeholder="거리(km)" style="width:120px;">
+            </div>
+            <button onclick="addAdminCarDirect()" class="btn-block" style="background:var(--blue); padding:12px; margin-bottom:15px; font-size:14px;">차량 강제 추가</button>
+
+            <label style="color:#aaa; font-size:12px; margin-bottom:5px; display:block;">차량 데이터 CSV 업로드</label>
+            <input type="file" accept=".csv" onchange="uploadCarCSV(event)" style="font-size:13px; padding:10px;">
+        </div>
     </div>
-
 </div>
 
 <script>
-    const initDefaultSchedules = [
-        { id: 'S1', text: "오전 09:30 오페라하우스 음향 서라운드 스피커 얼라인먼트 점검" },
-        { id: 'S2', text: "오후 14:00 15기 사운드 테크니션 무대 기기 실기 교육" }
-    ];
+    function getTodayStr() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
 
-    const initDefaultCars = [
-        { id: 'C1', name: '스타렉스(8291)', status: true, mileage: 52400 },
-        { id: 'C2', name: '스타렉스(1048)', status: true, mileage: 57100 },
-        { id: 'C3', name: '스타리아(5921)', status: true, mileage: 14200 },
-        { id: 'C4', name: '카니발(8921)', status: true, mileage: 31000 }
-    ];
+    function openSmartWindow(id) {
+        document.getElementById(id).classList.add('active');
+        if(id === 'win-notice') syncNoticeUI();
+        if(id === 'win-schedule') {
+            if(!document.getElementById('viewDateSelect').value) {
+                const today = getTodayStr();
+                document.getElementById('viewDateSelect').value = today;
+                document.getElementById('userSchDate').value = today;
+                document.getElementById('adminSchDate').value = today;
+            }
+            syncScheduleUI();
+        }
+        if(id === 'win-dispatch') syncDispatchUI();
+    }
+    
+    function closeSmartWindowForce(id) { document.getElementById(id).classList.remove('active'); }
+    function closeSmartWindow(event) { if(event.target.classList.contains('smart-window-overlay')) event.target.classList.remove('active'); }
 
-    let appSchedules = JSON.parse(localStorage.getItem('sac_sound_schedules')) || initDefaultSchedules;
-    let appCars = JSON.parse(localStorage.getItem('sac_sound_cars')) || initDefaultCars;
+    function authAdmin() {
+        const pwd = prompt("서장님 권한 인증 암호를 입력하세요.");
+        if(pwd === "2026") {
+            openSmartWindow('win-admin');
+            const today = getTodayStr();
+            if(!document.getElementById('adminSchDate').value) document.getElementById('adminSchDate').value = today;
+            syncAdminUI();
+        } else { alert("보안 인증 실패"); }
+    }
+
+    // [1] 공지사항
+    window.syncNoticeUI = function() {
+        renderNoticeHTML('uiMainNoticeList', window.cloudData.notices_main, 'var(--gold)');
+        renderNoticeHTML('uiSubNoticeList', window.cloudData.notices_sub, 'var(--blue)');
+    };
+    function renderNoticeHTML(elementId, array, color) {
+        const box = document.getElementById(elementId);
+        if(!array || array.length === 0) {
+            box.innerHTML = "<div style='opacity:0.5; font-size:15px; font-weight:bold;'>등록된 데이터가 없습니다.</div>";
+            return;
+        }
+        let html = "";
+        const sorted = [...array].reverse();
+        sorted.forEach(n => {
+            html += `
+            <div class="notice-box" style="border-left-color: ${color};">
+                <div class="notice-date" style="color:${color};">${n.date}</div>
+                <div style="font-size:15px; line-height:1.6;">${n.text.replace(/\n/g, '<br>')}</div>
+            </div>`;
+        });
+        box.innerHTML = html;
+    }
+
+    // [2] 로컬스토리지 데이터
+    let appSchedules = JSON.parse(localStorage.getItem('sac_sound_schedules')) || [];
+    appSchedules = appSchedules.map(s => s.date ? s : { ...s, date: getTodayStr() });
+
+    let appCars = JSON.parse(localStorage.getItem('sac_sound_cars')) || [];
 
     function commitStorage() {
         localStorage.setItem('sac_sound_schedules', JSON.stringify(appSchedules));
         localStorage.setItem('sac_sound_cars', JSON.stringify(appCars));
     }
 
-    function showView(viewId) {
-        document.querySelectorAll('.view-section').forEach(section => section.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
-        // NFC 관련 클래스 초기화
-        document.body.classList.remove('access-granted');
-    }
+    // [3] 일정 화면 연동
+    window.syncScheduleUI = function() {
+        const dateFilter = document.getElementById('viewDateSelect').value;
+        const box = document.getElementById('uiScheduleListContainer');
+        const filtered = appSchedules.filter(s => s.date === dateFilter);
 
-    /* ================= [NFC 스마트 출입증 제어] ================= */
-    let isNfcScanning = false;
-    async function openNfcView() {
-        showView('view-nfc');
-        if (isNfcScanning) return;
-
-        if ('NDEFReader' in window) {
-            try {
-                const ndef = new NDEFReader();
-                await ndef.scan();
-                isNfcScanning = true;
-                ndef.onreading = ({ serialNumber }) => {
-                    document.body.classList.add('access-granted');
-                    document.getElementById('accessTitle').innerText = "출입 승인 완료";
-                    document.getElementById('accessDesc').innerText = "무대음향 승인 ID: " + serialNumber;
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                };
-            } catch (err) {
-                document.getElementById('accessDesc').innerText = "NFC 센서 활성화가 필요합니다.";
-            }
-        } else {
-            document.getElementById('accessDesc').innerHTML = "(수동 태그 모드)<br>본 관제 화면을 클릭하면 마스터 권한으로 출입 처리됩니다.";
-            document.getElementById('nfcZone').onclick = () => {
-                document.body.classList.add('access-granted');
-                document.getElementById('accessTitle').innerText = "서장 마스터 승인";
-                document.getElementById('accessDesc').innerText = "공연장 출입문 개방 상태입니다.";
-            };
-        }
-    }
-
-    function closeNfcView() {
-        document.getElementById('accessTitle').innerText = "출입키 대기 중";
-        showView('view-menu');
-    }
-
-    /* ================= [오늘의 주요 일정 비즈니스 로직] ================= */
-    function openScheduleView() {
-        showView('view-schedule');
-        syncScheduleUI();
-    }
-
-    function syncScheduleUI() {
-        const container = document.getElementById('userScheduleContainer');
-        if (appSchedules.length === 0) {
-            container.innerHTML = `<div style="opacity:0.5; text-align:center; padding:15px;">오늘 예정된 확정 일정이 없습니다.</div>`;
+        if(filtered.length === 0) {
+            box.innerHTML = `<div style='opacity:0.5; font-weight:bold;'>[${dateFilter}] 등록된 일정이 없습니다.</div>`;
             return;
         }
-
         let html = "";
-        appSchedules.forEach(sch => {
-            html += `
-            <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size:13.5px; display:flex; align-items:flex-start;">
-                <span style="color:#4CAF50; margin-right:8px; font-weight:bold;">•</span>
-                <span style="word-break:keep-all;">${sch.text}</span>
-            </div>`;
-        });
-        container.innerHTML = html;
+        filtered.forEach(s => html += `<div class="list-item"><span>- ${s.text}</span></div>`);
+        box.innerHTML = html;
     }
 
-    function addUserSchedule() {
-        const input = document.getElementById('userSchInput');
-        const text = input.value.trim();
-        if (!text) return alert('추가할 일정 내용을 정확히 기입하십시오.');
+    window.addUserSchedule = function() {
+        const dVal = document.getElementById('userSchDate').value;
+        const tVal = document.getElementById('userSchInput').value.trim();
+        if(!dVal) return alert('추가할 날짜를 선택하세요.');
+        if(!tVal) return alert('일정 내용을 입력하세요.');
 
-        appSchedules.push({ id: 'S' + Date.now(), text: text });
-        commitStorage();
-        input.value = "";
+        appSchedules.push({ id: Date.now(), date: dVal, text: tVal });
+        commitStorage(); 
+
+        document.getElementById('viewDateSelect').value = dVal;
+        document.getElementById('userSchInput').value = ""; 
         syncScheduleUI();
-        alert('오늘의 일정에 실시간 등록 및 전파되었습니다.');
-    }
+    };
 
-    /* ================= [배차 관리 시스템 비즈니스 로직] ================= */
-    function openDispatchView() {
-        showView('view-dispatch');
-        syncDispatchUI();
-    }
-
+    // [4] 배차 로직
     function syncDispatchUI() {
-        const userList = document.getElementById('carListUser');
+        const userList = document.getElementById('uiCarListUser');
         const selectBox = document.getElementById('carSelectUser');
-
-        userList.innerHTML = "";
-        selectBox.innerHTML = `<option value="">배차 희망 업무차량 선택</option>`;
-
-        if (appCars.length === 0) {
-            userList.innerHTML = `<div style="opacity:0.5; text-align:center; padding:15px;">등록된 운행차량이 존재하지 않습니다.</div>`;
-            return;
-        }
-
-        appCars.forEach((car, index) => {
-            const stateLabel = car.status ? '대기중' : '사용중';
-            const stateClass = car.status ? 'available' : 'in-use';
-            const distanceStr = car.mileage.toLocaleString() + ' km';
-            const returnBtn = !car.status
-                ? `<button class="btn-inline complete" onclick="completeDriverReturn(${index})">운행완료</button>`
-                : '';
-
-            userList.innerHTML += `
-            <div class="list-item">
-                <div class="item-info">
-                    <span class="item-title">${car.name}</span>
-                    <span class="item-sub">현재 누적: ${distanceStr}</span>
-                </div>
-                <div class="item-actions">
-                    ${returnBtn}
-                    <span class="badge ${stateClass}">${stateLabel}</span>
-                </div>
-            </div>`;
-
-            if (car.status) {
-                selectBox.innerHTML += `<option value="${index}">${car.name} (대기중)</option>`;
-            }
-        });
-    }
-
-    function submitDispatchUser() {
-        const driver = document.getElementById('dispatchDriverName').value.trim();
-        const carIndex = document.getElementById('carSelectUser').value;
-
-        if (!driver) return alert('운행 신청 스태프의 성명을 작성하세요.');
-        if (carIndex === "") return alert('대기중 상태의 차량을 선택해 주십시오.');
-
-        appCars[carIndex].status = false;
-        commitStorage();
-
-        document.getElementById('dispatchDriverName').value = "";
-        syncDispatchUI();
-        alert(driver + ' 스태프님 배차 처리가 완료되었습니다. 안전운행하십시오.');
-    }
-
-    function completeDriverReturn(index) {
-        const inputDist = prompt(`[${appCars[index].name}] 운행 완료 정산\n실제 주행하신 운행 거리(km)를 숫자만 입력하세요.`);
-        if (inputDist === null || inputDist.trim() === "") return;
-
-        const distance = parseInt(inputDist, 10);
-        if (isNaN(distance) || distance < 0) {
-            return alert('정확한 정수 숫자로 거리를 입력해야 누적거리에 반영됩니다.');
-        }
-
-        appCars[index].mileage += distance;
-        appCars[index].status = true;
-        commitStorage();
-
-        syncDispatchUI();
-        alert('정상 인계 반납 처리되었습니다.\n차량 총 누적거리: ' + appCars[index].mileage.toLocaleString() + ' km');
-    }
-
-    /* ================= [⚙️ 어드민 전용 종합 관제 백엔드 로직] ================= */
-    let adminAuthenticated = false;
-
-    function openAdminView() {
-        if (!adminAuthenticated) {
-            const password = prompt("보안구역 관제실 암호를 입력하십시오.");
-            if (password === "2026") {
-                adminAuthenticated = true;
-                document.getElementById('mainTitle').innerText = "어드민 종합 통제소 (음향실)";
-                showView('view-admin');
-                syncAdminAllUI();
-            } else {
-                alert("인증 실패: 잘못된 비밀번호입니다.");
-            }
-        } else {
-            showView('view-admin');
-            syncAdminAllUI();
-        }
-    }
-
-    function exitAdminView() {
-        adminAuthenticated = false;
-        document.getElementById('mainTitle').innerText = "무대음향 팀 관제본부";
-        showView('view-menu');
-    }
-
-    function syncAdminAllUI() {
-        syncAdminScheduleList();
-        syncAdminCarList();
-    }
-
-    function syncAdminScheduleList() {
-        const container = document.getElementById('adminScheduleList');
-        container.innerHTML = "";
-
-        if (appSchedules.length === 0) {
-            container.innerHTML = `<div style="font-size:12px; opacity:0.5; text-align:center; padding:10px;">배정된 일정이 비어 있습니다.</div>`;
-            return;
-        }
-
-        appSchedules.forEach((sch, idx) => {
-            container.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px;">
-                <span style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:75%;">[${idx+1}] ${sch.text}</span>
-                <div>
-                    <button class="btn-inline edit" onclick="editAdminScheduleDirect(${idx})">수정</button>
-                    <button class="btn-inline delete" onclick="deleteAdminScheduleDirect(${idx})">삭제</button>
-                </div>
-            </div>`;
-        });
-    }
-
-    function addAdminScheduleDirect() {
-        const input = document.getElementById('adminSchInput');
-        const val = input.value.trim();
-        if (!val) return alert('일정 내용을 채워주십시오.');
-
-        appSchedules.push({ id: 'S' + Date.now(), text: val });
-        commitStorage();
-        input.value = "";
-        syncAdminScheduleList();
-    }
-
-    function editAdminScheduleDirect(idx) {
-        const revised = prompt("일정 내용을 변경합니다:", appSchedules[idx].text);
-        if (revised && revised.trim() !== "") {
-            appSchedules[idx].text = revised.trim();
-            commitStorage();
-            syncAdminScheduleList();
-        }
-    }
-
-    function deleteAdminScheduleDirect(idx) {
-        if (confirm("해당 일정을 시스템에서 파기 삭제하시겠습니까?")) {
-            appSchedules.splice(idx, 1);
-            commitStorage();
-            syncAdminScheduleList();
-        }
-    }
-
-    function uploadScheduleCSV(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const rawText = e.target.result;
-            const lines = rawText.split(/\r?\n/);
-            const imported = [];
-
-            lines.forEach(line => {
-                let cleanLine = line.trim();
-                if (cleanLine.startsWith('"') && cleanLine.endsWith('"')) {
-                    cleanLine = cleanLine.slice(1, -1);
-                }
-                if (cleanLine) {
-                    imported.push({ id: 'S' + Date.now() + Math.random(), text: cleanLine });
-                }
-            });
-
-            if (imported.length > 0) {
-                if (confirm('기존 일정을 유지하고 CSV의 ' + imported.length + '개 일정을 추가하시겠습니까?\n(취소 시 기존 일정을 덮어씁니다.)')) {
-                    appSchedules = appSchedules.concat(imported);
-                } else {
-                    appSchedules = imported;
-                }
-                commitStorage();
-                syncAdminScheduleList();
-                alert('일정 CSV 일괄 동기화가 반영되었습니다.');
-            } else {
-                alert('유효한 CSV 텍스트 라인을 읽을 수 없습니다.');
-            }
-        };
-        reader.readAsText(file, "EUC-KR");
-        event.target.value = "";
-    }
-
-    function syncAdminCarList() {
-        const container = document.getElementById('adminCarList');
-        container.innerHTML = "";
-
-        if (appCars.length === 0) {
-            container.innerHTML = `<div style="font-size:12px; opacity:0.5; text-align:center; padding:10px;">등록된 차량이 전무합니다.</div>`;
+        userList.innerHTML = ""; selectBox.innerHTML = "<option value=''>차량 선택</option>";
+        
+        if(appCars.length === 0) {
+            userList.innerHTML = "<div style='opacity:0.5; font-weight:bold;'>등록된 차량이 없습니다.</div>";
             return;
         }
 
         appCars.forEach((car, idx) => {
-            const stateLabel = car.status ? '대기중' : '사용중';
-            const stateClass = car.status ? 'available' : 'in-use';
-
-            container.innerHTML += `
-            <div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <strong>${car.name}</strong>
-                    <span style="opacity:0.6; margin-left:5px;">(${car.mileage.toLocaleString()} km)</span>
-                    <span class="badge ${stateClass}" style="padding:2px 4px; font-size:9px; margin-left:4px;">${stateLabel}</span>
-                </div>
-                <div>
-                    <button class="btn-inline edit" style="background:#4b5563;" onclick="toggleAdminCarStatusDirect(${idx})">상태반전</button>
-                    <button class="btn-inline edit" onclick="editAdminCarDirect(${idx})">수정</button>
-                    <button class="btn-inline delete" onclick="deleteAdminCarDirect(${idx})">삭제</button>
-                </div>
-            </div>`;
+            const state = car.status ? '<span style="color:var(--success);">대기중</span>' : '<span style="color:var(--danger);">운행중</span>';
+            const btn = !car.status ? `<button class="btn-sm" onclick="completeDrive(${idx})">반납</button>` : '';
+            userList.innerHTML += `<div class="list-item"><div>${car.name}<br><span style="font-size:13px; color:#aaa;">누적: ${car.mileage.toLocaleString()}km</span></div><div>${btn} ${state}</div></div>`;
+            if(car.status) selectBox.innerHTML += `<option value="${idx}">${car.name}</option>`;
         });
     }
+    window.submitDispatchUser = function() {
+        const name = document.getElementById('dispatchDriverName').value;
+        const idx = document.getElementById('carSelectUser').value;
+        if(!name || idx==="") return alert("정보를 정확히 입력하세요.");
+        appCars[idx].status = false; commitStorage();
+        syncDispatchUI(); alert(name + "님 배차 완료");
+    };
+    window.completeDrive = function(idx) {
+        const dist = prompt("주행거리(km) 숫자 입력:");
+        if(!dist || isNaN(dist)) return;
+        appCars[idx].mileage += parseInt(dist);
+        appCars[idx].status = true; commitStorage(); syncDispatchUI();
+    };
 
-    function addAdminCarDirect() {
-        const nameInput = document.getElementById('adminCarNameInput');
-        const mileageInput = document.getElementById('adminCarMileageInput');
-        const name = nameInput.value.trim();
-        const mileage = parseInt(mileageInput.value, 10) || 0;
-
-        if (!name) return alert('차량의 명칭 및 넘버를 기입하세요.');
-
-        appCars.push({ id: 'C' + Date.now(), name: name, status: true, mileage: mileage });
-        commitStorage();
-
-        nameInput.value = "";
-        mileageInput.value = "";
-        syncAdminCarList();
-    }
-
-    function toggleAdminCarStatusDirect(idx) {
-        appCars[idx].status = !appCars[idx].status;
-        commitStorage();
-        syncAdminCarList();
-    }
-
-    function editAdminCarDirect(idx) {
-        const nameRevised = prompt("변경할 차량 명칭을 입력하세요:", appCars[idx].name);
-        if (nameRevised === null) return;
-
-        const mileageInput = prompt("현재 누적주행거리(km)를 수정하세요:", appCars[idx].mileage);
-        if (mileageInput === null) return;
-
-        const cleanMileage = parseInt(mileageInput, 10);
-        if (!isNaN(cleanMileage)) {
-            appCars[idx].name = nameRevised.trim() || appCars[idx].name;
-            appCars[idx].mileage = cleanMileage;
-            commitStorage();
-            syncAdminCarList();
+    // [5] 어드민 UI 및 CSV 파서
+    function syncAdminUI() {
+        const schBox = document.getElementById('adminScheduleList');
+        const sortedSch = [...appSchedules].sort((a,b) => a.date.localeCompare(b.date));
+        
+        if (sortedSch.length === 0) {
+            schBox.innerHTML = "<div style='font-size:13px; opacity:0.5;'>등록된 일정이 없습니다.</div>";
+        } else {
+            schBox.innerHTML = sortedSch.map(s => `
+                <div class="list-item" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="flex:1;"><span style="color:var(--success); font-size:12px; margin-right:8px; display:block;">${s.date}</span> ${s.text}</div>
+                    <button class="btn-sm" style="background:var(--danger); margin-left:10px;" onclick="deleteScheduleById(${s.id})">삭제</button>
+                </div>
+            `).join('');
         }
+        
+        const carBox = document.getElementById('adminCarList');
+        carBox.innerHTML = appCars.map((c, i) => `<div class="list-item" style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">
+            <div style="width:100%; display:flex; justify-content:space-between;">
+                <span>${c.name} <span style="font-size:11px; color:#aaa;">(${c.mileage}km)</span></span>
+                <span style="font-size:12px; color:${c.status ? 'var(--success)' : 'var(--danger)'};">${c.status ? '대기중' : '사용중'}</span>
+            </div>
+            <div style="width:100%; display:flex; justify-content:flex-end; gap:5px;">
+                <button class="btn-sm" onclick="toggleCar(${i})">상태전환</button> 
+                <button class="btn-sm" style="background:var(--danger);" onclick="delCar(${i})">삭제</button>
+            </div>
+        </div>`).join('');
     }
 
-    function deleteAdminCarDirect(idx) {
-        if (confirm("해당 업무용 차량 데이터를 삭제 파기하시겠습니까?")) {
-            appCars.splice(idx, 1);
-            commitStorage();
-            syncAdminCarList();
-        }
-    }
+    window.deleteScheduleById = function(id) {
+        if(!confirm("해당 일정을 삭제하시겠습니까?")) return;
+        appSchedules = appSchedules.filter(s => s.id !== id);
+        commitStorage(); syncAdminUI();
+        if(document.getElementById('win-schedule').classList.contains('active')) syncScheduleUI();
+    };
 
-    function uploadCarCSV(event) {
+    window.addAdminScheduleDirect = function() {
+        const dVal = document.getElementById('adminSchDate').value;
+        const tVal = document.getElementById('adminSchInput').value.trim();
+        if(!dVal || !tVal) return alert('날짜와 내용을 모두 입력하십시오.');
+
+        appSchedules.push({ id: Date.now(), date: dVal, text: tVal });
+        commitStorage();
+        document.getElementById('adminSchInput').value = "";
+        syncAdminUI();
+        if(document.getElementById('win-schedule').classList.contains('active')) syncScheduleUI();
+    };
+
+    /* --- 일정 CSV 파서 로직 --- */
+    window.uploadScheduleCSV = function(event) {
         const file = event.target.files[0];
-        if (!file) return;
+        if(!file) return;
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -623,40 +403,120 @@
             const lines = rawText.split(/\r?\n/);
             const imported = [];
 
-            lines.forEach(line => {
-                if (!line.trim()) return;
-                const columns = line.split(',');
+            // A:순번, B:날짜, C:시간, D:제목, E:장소, F:구분
+            lines.forEach((line, index) => {
+                if(!line.trim()) return;
+                if(index === 0 && line.includes('순번')) return; // 헤더 무시
 
-                const name = columns[0] ? columns[0].trim().replace(/^"|"$/g, '') : '';
-                const mileage = columns[1] ? parseInt(columns[1].trim(), 10) || 0 : 0;
-                const statusStr = columns[2] ? columns[2].trim().replace(/^"|"$/g, '') : '대기중';
-                const status = (statusStr === '대기중' || statusStr === 'true' || statusStr === '1');
+                const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                
+                const dateStr = cols[1] || '';
+                const timeStr = cols[2] || '';
+                let titleStr = cols[3] || '';
+                let locStr = cols[4] || '';
+                const typeStr = cols[5] || '';
 
-                if (name) {
-                    imported.push({ id: 'C' + Date.now() + Math.random(), name, mileage, status });
+                if (titleStr === '-') titleStr = '';
+                if (locStr === '-') locStr = '';
+
+                // 텍스트 가공: [시간] [구분] 제목 (장소)
+                let textObj = [];
+                if(timeStr && timeStr !== '-') textObj.push(`[${timeStr}]`);
+                if(typeStr && typeStr !== '-') textObj.push(`[${typeStr}]`);
+                if(titleStr) textObj.push(titleStr);
+                if(locStr) textObj.push(`(${locStr})`);
+
+                const finalText = textObj.join(' ');
+                const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
+
+                if (finalText) {
+                    imported.push({
+                        id: Date.now() + Math.random(),
+                        date: isValidDate ? dateStr : getTodayStr(),
+                        text: finalText
+                    });
                 }
             });
 
             if (imported.length > 0) {
-                if (confirm('기존 차량 목록과 통합 연동하시겠습니까?\n(취소 시 새로운 CSV 데이터로 전체 대체됩니다.)')) {
+                if(confirm(`총 ${imported.length}개의 일정을 추가하시겠습니까?\n(기존 일정에 누적됩니다.)`)) {
+                    appSchedules = appSchedules.concat(imported);
+                    commitStorage(); syncAdminUI();
+                    alert('일정 CSV 데이터 일괄 등록 완료.');
+                }
+            } else {
+                alert('유효한 CSV 형식을 찾을 수 없습니다.');
+            }
+        };
+        reader.readAsText(file, "EUC-KR"); 
+        event.target.value = "";
+    };
+
+    /* --- 차량 CSV 파서 로직 --- */
+    window.uploadCarCSV = function(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const rawText = e.target.result;
+            const lines = rawText.split(/\r?\n/);
+            const imported = [];
+
+            // A:순번, B:차량명, C:차량타입, D:년도, E:누적거리, F:차량번호
+            lines.forEach((line, index) => {
+                if(!line.trim()) return;
+                if(index === 0 && line.includes('순번')) return; // 헤더 무시
+
+                const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                
+                const carName = cols[1] || '';
+                const mileageStr = cols[4] || '0';
+                const carNo = cols[5] || '';
+
+                if (!carName || carName === '-') return;
+
+                // 누적거리 문자열에서 숫자만 추출
+                const mileage = parseInt(mileageStr.replace(/[^0-9]/g, ''), 10) || 0;
+                
+                // 이름 합치기: 차량명(차량번호)
+                let fullName = carName;
+                if(carNo && carNo !== '-') fullName += `(${carNo})`;
+
+                imported.push({ 
+                    id: 'C' + Date.now() + Math.random(), 
+                    name: fullName, 
+                    status: true, // 신규 등록 차량은 무조건 '대기중'
+                    mileage: mileage 
+                });
+            });
+
+            if (imported.length > 0) {
+                if(confirm(`총 ${imported.length}대의 차량을 새로 추가하시겠습니까?\n(취소 시 새로운 목록으로 덮어씁니다.)`)) {
                     appCars = appCars.concat(imported);
                 } else {
                     appCars = imported;
                 }
-                commitStorage();
-                syncAdminCarList();
-                alert('차량 마스터 CSV 동기화가 성공적으로 끝났습니다.');
+                commitStorage(); syncAdminUI();
+                alert('차량 마스터 CSV 동기화 완료.');
             } else {
-                alert('유효하지 않거나 비어있는 차량 CSV 구조입니다.');
+                alert('유효한 차량 CSV 데이터를 찾을 수 없습니다.');
             }
         };
         reader.readAsText(file, "EUC-KR");
         event.target.value = "";
-    }
+    };
 
-    window.addEventListener('DOMContentLoaded', () => {
-        commitStorage();
-    });
+    // 개별 차량 관리
+    window.delCar = function(i) { appCars.splice(i, 1); commitStorage(); syncAdminUI(); };
+    window.toggleCar = function(i) { appCars[i].status = !appCars[i].status; commitStorage(); syncAdminUI(); };
+    window.addAdminCarDirect = function() {
+        const n = document.getElementById('adminCarNameInput').value;
+        const m = document.getElementById('adminCarMileageInput').value;
+        if(!n) return;
+        appCars.push({id: Date.now(), name: n, status:true, mileage: parseInt(m)||0});
+        commitStorage(); syncAdminUI();
+    };
 </script>
 </body>
 </html>
